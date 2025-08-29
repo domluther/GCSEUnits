@@ -1,43 +1,62 @@
-# Migration Checklist for AI Agents
 
-Use this checklist when porting a legacy project to this React + TypeScript + Vite template.
+# Migration Checklist: Legacy Data Conversion Site → New Vite/React/TypeScript Template
 
-## Pre-Migration Analysis
+## Goals
 
-- [ ] **Identify project type**: SPA, MPA, static site, web app
-- [ ] **List current dependencies**: Framework, libraries, build tools
-- [ ] **Map existing routes**: URLs and corresponding pages/components  
-- [ ] **Catalog components**: UI components, layouts, pages
-- [ ] **Identify state management**: Global state, local state patterns
-- [ ] **List API endpoints**: REST, GraphQL, external services
-- [ ] **Note styling approach**: CSS files, preprocessors, CSS-in-JS
-- [ ] **Check for tests**: Test files, testing framework used
+- [ ] Migrate File Size Calculator, Storage Calculator, and Unit Convertor features from legacy to new codebase
+- [ ] Use modern React + TypeScript patterns and shared quiz logic
+- [ ] UI: Main body with 3 mode-switch buttons (FileSize, Storage, UnitConvertor). Each mode presents a question requiring user input (not multiple choice)
+- [ ] Use shadcn/ui components for all UI elements
+- [ ] Each mode will eventually have its own route for easy sharing (e.g. `/filesize`, `/storage`, `/convert`)
+
+---
 
 ## Migration Steps
 
-### 1. Project Setup
-- [ ] Clone this template to new directory
-- [ ] Run `npm install` to install dependencies
-- [ ] Copy legacy project files to `legacy/` folder for reference
-- [ ] Update `package.json` name and description
+### 1. Analyze Legacy Components
+- [ ] Review `Legacy/src/components/FileSizeCalculator.tsx`, `StorageCalculator.tsx`, `UnitConvertor.tsx` for logic and question generation
+- [ ] Review shared UI: `QuizComponents.tsx` (AnswerForm, FeedbackBox, ScoreBox)
+- [ ] Note: Each calculator generates a question, takes user input, checks correctness, and provides feedback/explanation
 
-### 2. Route Migration
-- [ ] Map legacy routes to file-based routing structure
-- [ ] Create route files in `src/routes/`:
-  - [ ] `index.tsx` for home page (`/`)
-  - [ ] Individual route files for each page
-  - [ ] Dynamic routes using `$param.tsx` syntax
-- [ ] Update `__root.tsx` with common layout elements
-- [ ] Test routing with `npm run dev`
+### 2. Plan New Architecture
+- [ ] Use a single main page/component with 3 buttons to switch modes
+- [ ] Each mode renders its calculator (FileSize, Storage, UnitConvertor) using a shared input/feedback UI
+- [ ] Use hooks for state and logic (`useQuizLogic` for streaks, stats, feedback)
+- [ ] Use new layout (`QuizLayout.tsx`/`SiteLayout`) for consistent header/navigation
 
-### 3. Component Migration  
-- [ ] Convert class components to functional components
-- [ ] Add TypeScript interfaces for props
-- [ ] Update import statements to use `@/` alias
-- [ ] Replace lifecycle methods with hooks:
-  - [ ] `componentDidMount` → `useEffect`
-  - [ ] `componentDidUpdate` → `useEffect` with dependencies
-  - [ ] `this.state` → `useState`
+### 3. Component Migration
+- [ ] Convert legacy calculators to functional components using TypeScript
+- [ ] Refactor question generation and answer checking to use hooks
+- [ ] Replace legacy state management with `useQuizLogic` and local state
+- [ ] Use shadcn/ui primitives (from `/src/components/ui/`)
+
+### 4. UI/UX
+- [ ] Implement mode-switch buttons at the top of the main body (use shadcn `Button`)
+- [ ] For each mode, show:
+  - [ ] Question prompt
+  - [ ] Input box for answer (use shadcn `Input`)
+  - [ ] Submit button (use shadcn `Button`)
+  - [ ] Feedback/explanation after submission (use shadcn `Alert`)
+- [ ] Reuse/port `FeedbackBox` and input UI from legacy or new UI library
+
+### 5. Routing
+- [ ] Main route: `/` renders the calculator page with mode switching
+- [ ] Add separate routes for each mode (`/filesize`, `/storage`, `/convert`) for easy sharing
+
+### 6. Testing
+- [ ] Port or write new tests for question generation, answer checking, and UI
+- [ ] Use the new test setup in `/src/test/`
+
+### 7. Cleanup
+- [ ] Remove unused legacy code after migration
+- [ ] Update documentation and README
+
+---
+
+## Next Steps
+
+- [ ] Approve this migration guide or suggest changes
+- [ ] Once approved, begin migrating the calculators and building the new main page with mode switching and input-based questions
 - [ ] Test each component individually
 
 ### 4. Styling Migration
