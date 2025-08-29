@@ -50,16 +50,11 @@ Use this checklist when porting a legacy project to this React + TypeScript + Vi
 
 ### 5. State Management Migration
 - [ ] Convert local state to `useState`/`useReducer`
-- [ ] For global state, consider adding:
-  - [ ] Zustand: `npm install zustand`
-  - [ ] Redux Toolkit: `npm install @reduxjs/toolkit react-redux`
-  - [ ] Context API with useReducer
 - [ ] Update state access patterns throughout components
 - [ ] Test state changes and persistence
 
 ### 6. API Integration Migration
 - [ ] Update fetch calls to modern patterns
-- [ ] Consider adding TanStack Query: `npm install @tanstack/react-query`
 - [ ] Convert callback-based API calls to async/await
 - [ ] Add proper error handling
 - [ ] Update loading states
