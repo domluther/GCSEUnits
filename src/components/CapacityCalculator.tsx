@@ -6,7 +6,7 @@ import { type ExplanationSection, formatNumber } from "@/lib/numberUtils";
 import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface BaseQuestion {
-	category: "CalculateCapacity";
+	category: "Capacity Calculator";
 	answer: number;
 	explanation: ExplanationSection[];
 }
@@ -54,7 +54,7 @@ const convertValue = (
 // Helper function to get simple file sizes
 const getSimpleFileSize = (): { size: number; unit: string } => {
 	const simpleSizes = [
-		{ size: 1, unit: "megabytes" },
+		{ size: 1, unit: "megabyte" },
 		{ size: 2, unit: "megabytes" },
 		{ size: 2.5, unit: "megabytes" },
 		{ size: 5, unit: "megabytes" },
@@ -74,7 +74,7 @@ const getSimpleFileSize = (): { size: number; unit: string } => {
 const getSimpleDriveSize = (): { size: number; unit: string } => {
 	const simpleSizes = [
 		{ size: 500, unit: "megabytes" },
-		{ size: 1, unit: "gigabytes" },
+		{ size: 1, unit: "gigabyte" },
 		{ size: 2, unit: "gigabytes" },
 		{ size: 4, unit: "gigabytes" },
 		{ size: 5, unit: "gigabytes" },
@@ -84,6 +84,19 @@ const getSimpleDriveSize = (): { size: number; unit: string } => {
 		{ size: 100, unit: "gigabytes" },
 	];
 	return simpleSizes[Math.floor(Math.random() * simpleSizes.length)];
+};
+
+// Helper function to get the correct unit form (singular/plural)
+const getUnitText = (value: number, unit: string): string => {
+	if (value === 1) {
+		return unit.replace(/s$/, ""); // Remove 's' for singular
+	}
+	return unit; // Keep plural form
+};
+
+// Helper function to get unit in singular form for use as adjectives (e.g., "5 megabyte files")
+const getAdjectiveUnitText = (unit: string): string => {
+	return unit.replace(/s$/, ""); // Always singular when used as adjective
 };
 
 const generateExplanation = (
@@ -103,7 +116,7 @@ const generateExplanation = (
 		steps.push({
 			title: "Calculate the total size of all files",
 			details: [
-				`${formatNumber(question.params.fileCount)} files × ${formatNumber(question.params.fileSize)} ${question.params.fileUnit} = ${formatNumber(totalInFileUnits)} ${question.params.fileUnit}`,
+				`${formatNumber(question.params.fileCount)} files × ${formatNumber(question.params.fileSize)} ${getUnitText(question.params.fileSize, question.params.fileUnit)} = ${formatNumber(totalInFileUnits)} ${getUnitText(totalInFileUnits, question.params.fileUnit)}`,
 			],
 		});
 
@@ -111,7 +124,7 @@ const generateExplanation = (
 			steps.push({
 				title: `Convert to ${question.params.driveUnit}`,
 				details: [
-					`${formatNumber(totalInFileUnits)} ${question.params.fileUnit} = ${formatNumber(finalValue)} ${question.params.driveUnit}`,
+					`${formatNumber(totalInFileUnits)} ${getUnitText(totalInFileUnits, question.params.fileUnit)} = ${formatNumber(finalValue)} ${getUnitText(finalValue, question.params.driveUnit)}`,
 				],
 			});
 		}
@@ -125,14 +138,14 @@ const generateExplanation = (
 		steps.push({
 			title: `Convert drive size to ${question.params.fileUnit}`,
 			details: [
-				`${question.params.driveSize} ${question.params.driveUnit} = ${formatNumber(driveInFileUnits)} ${question.params.fileUnit}`,
+				`${question.params.driveSize} ${getUnitText(question.params.driveSize, question.params.driveUnit)} = ${formatNumber(driveInFileUnits)} ${getUnitText(driveInFileUnits, question.params.fileUnit)}`,
 			],
 		});
 
 		steps.push({
 			title: "Divide by file size to get number of files",
 			details: [
-				`${formatNumber(driveInFileUnits)} ${question.params.fileUnit} ÷ ${question.params.fileSize} ${question.params.fileUnit} = ${formatNumber(question.answer)} files`,
+				`${formatNumber(driveInFileUnits)} ${getUnitText(driveInFileUnits, question.params.fileUnit)} ÷ ${question.params.fileSize} ${getUnitText(question.params.fileSize, question.params.fileUnit)} = ${formatNumber(question.answer)} files`,
 			],
 		});
 	}
@@ -155,7 +168,7 @@ const generateFileCountQuestion = (): FileCountQuestion => {
 	};
 
 	const question: FileCountQuestion = {
-		category: "CalculateCapacity",
+		category: "Capacity Calculator",
 		type: "fileCount",
 		params,
 		answer,
@@ -182,7 +195,7 @@ const generateCapacityQuestion = (): CapacityQuestion => {
 	};
 
 	const question: CapacityQuestion = {
-		category: "CalculateCapacity",
+		category: "Capacity Calculator",
 		type: "capacity",
 		params,
 		answer,
@@ -281,9 +294,13 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [hasSubmitted, currentQuestion]);
 
+	// Uses the adjective form of the unit for the question text
 	const getQuestionText = (question: Question): string => {
 		if (question.type === "fileCount") {
-			return `A user has a ${question.params.driveSize} ${question.params.driveUnit} drive. How many ${question.params.fileSize} ${question.params.fileUnit} files can they store on it?`;
+			const driveUnitText = getAdjectiveUnitText(question.params.driveUnit);
+			const fileUnitText = getAdjectiveUnitText(question.params.fileUnit);
+
+			return `A user has a ${question.params.driveSize}-${driveUnitText} drive. How many ${question.params.fileSize}-${fileUnitText} files can they store on it?`;
 		} else {
 			return `A user has ${question.params.fileCount} files that are each ${question.params.fileSize} ${question.params.fileUnit}. What is the total size in ${question.params.driveUnit}?`;
 		}

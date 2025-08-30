@@ -6,7 +6,7 @@ import { type ExplanationSection, formatNumber } from "@/lib/numberUtils";
 import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface Question {
-	category: "CalculateFileSize";
+	category: "File Size Calculator";
 	type: "sound" | "image" | "text" | "options" | "bitsFromOptions";
 	params: {
 		[key: string]: number;
@@ -38,7 +38,7 @@ const generateImageQuestion = (): Question => {
 	const answer = convertToUnit(sizeInBits, targetUnit);
 
 	return {
-		category: "CalculateFileSize",
+		category: "File Size Calculator",
 		type: "image",
 		params: { width, height, colourDepth },
 		targetUnit,
@@ -84,7 +84,7 @@ const generateSoundQuestion = (): Question => {
 	const answer = convertToUnit(bits, targetUnit);
 
 	return {
-		category: "CalculateFileSize",
+		category: "File Size Calculator",
 		type: "sound",
 		params: { sampleRate, duration, bitDepth },
 		targetUnit,
@@ -123,7 +123,7 @@ const generateTextQuestion = (): Question => {
 	const answer = convertToUnit(bits, targetUnit);
 
 	return {
-		category: "CalculateFileSize",
+		category: "File Size Calculator",
 		type: "text",
 		params: { charCount, bitsPerChar },
 		targetUnit,
@@ -155,7 +155,7 @@ const generateOptionsQuestion = (): Question => {
 	const answer = 2 ** numOfBits;
 
 	return {
-		category: "CalculateFileSize",
+		category: "File Size Calculator",
 		type: "options",
 		params: { numOfBits },
 		targetUnit: "bits",
@@ -178,7 +178,7 @@ const generateBitsFromOptionsQuestion = (): Question => {
 	const answer = Math.ceil(Math.log(numberOfOptions) / Math.log(2));
 
 	return {
-		category: "CalculateFileSize",
+		category: "File Size Calculator",
 		type: "bitsFromOptions",
 		params: { numberOfOptions },
 		targetUnit: "bits",

@@ -12,7 +12,7 @@ import {
 import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface Question {
-	category: "ConvertUnit";
+	category: "Converting Units";
 	finalValue: number;
 	fromUnit: string;
 	toUnit: string;
@@ -229,7 +229,7 @@ const generateQuestion = (
 	const answer = calculateAnswer(finalValue, fromUnit, toUnit);
 
 	const newQuestion: Question = {
-		category: "ConvertUnit",
+		category: "Converting Units",
 		finalValue,
 		fromUnit,
 		toUnit,

@@ -23,9 +23,9 @@ const blankScoreData = {
 	correct: 0,
 	streak: 0,
 	byType: {
-		ConvertUnit: { attempts: 0, correct: 0 },
-		CalculateCapacity: { attempts: 0, correct: 0 },
-		CalculateFileSize: { attempts: 0, correct: 0 },
+		"Converting Units": { attempts: 0, correct: 0 },
+		"Capacity Calculator": { attempts: 0, correct: 0 },
+		"File Size Calculator": { attempts: 0, correct: 0 },
 	},
 	history: [],
 };
