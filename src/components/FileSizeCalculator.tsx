@@ -257,8 +257,6 @@ export const FileSizeCalculator = () => {
 		}
 	};
 
-	const title = "📊 File Sizes";
-
 	return (
 		<div className="w-full">
 			<div className="p-4">
@@ -289,7 +287,7 @@ export const FileSizeCalculator = () => {
 						)}
 						{currentQuestion ? (
 							<div className="space-y-6">
-								<div className="text-xl md:text-2xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow">
+								<div className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow">
 									{getQuestionText(currentQuestion)}
 								</div>
 								<AnswerForm
@@ -314,4 +312,3 @@ export const FileSizeCalculator = () => {
 		</div>
 	);
 };
-
