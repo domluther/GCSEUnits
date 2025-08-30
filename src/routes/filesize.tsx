@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SharedLayout } from "@/components";
+import { SharedLayout } from "@/components/SharedLayout";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
 
 export const Route = createFileRoute("/filesize")({

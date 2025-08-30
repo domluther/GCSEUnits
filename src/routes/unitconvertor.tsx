@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SharedLayout, UnitConvertor } from "@/components";
+import { SharedLayout } from "@/components/SharedLayout";
+import { UnitConvertor } from "@/components/UnitConvertor";
 
 export const Route = createFileRoute("/unitconvertor")({
 	component: UnitConvertorPage,

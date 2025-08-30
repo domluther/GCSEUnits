@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CapacityCalculator, SharedLayout } from "@/components";
+import { SharedLayout } from "@/components/SharedLayout";
+import { CapacityCalculator } from "@/components/CapacityCalculator";
 
 export const Route = createFileRoute("/capacitycalculator")({
 	component: CapacityCalculatorPage,

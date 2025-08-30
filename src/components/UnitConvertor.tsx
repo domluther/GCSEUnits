@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import React, { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,16 +20,19 @@ interface Question {
 	explanation: ExplanationSection[];
 }
 
-const ConversionPathVisual: React.FC<{
+const ConversionPathVisual = ({
+	fromUnit,
+	toUnit,
+}: {
 	fromUnit: string;
 	toUnit: string;
-}> = ({ fromUnit, toUnit }) => {
+}) => {
 	const path = getConversionPath(fromUnit, toUnit);
 
 	return (
 		<div className="flex flex-wrap items-center gap-2 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-inner">
 			{path.map((unit, index) => (
-				<React.Fragment key={unit}>
+				<span key={unit}>
 					<div
 						className={`px-3 py-1 rounded-md shadow-sm ${getUnitColor(unit)}`}
 					>
@@ -38,7 +41,7 @@ const ConversionPathVisual: React.FC<{
 					{index < path.length - 1 && (
 						<ArrowRight className="h-4 w-4 text-indigo-400" />
 					)}
-				</React.Fragment>
+				</span>
 			))}
 		</div>
 	);
@@ -562,7 +565,7 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 										<div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
 											<div className="flex flex-wrap items-center gap-2">
 												{units.map((unit, index) => (
-													<React.Fragment key={unit}>
+													<span key={unit}>
 														<span
 															className={`px-2 py-1 rounded text-sm ${getUnitColor(unit)}`}
 														>
@@ -571,7 +574,7 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 														{index < units.length - 1 && (
 															<ArrowRight className="h-4 w-4 text-purple-400" />
 														)}
-													</React.Fragment>
+													</span>
 												))}
 											</div>
 										</div>

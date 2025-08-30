@@ -121,8 +121,6 @@ export class ScoreManager {
 			this.scores = blankScoreData;
 		}
 
-		console.log(questionType);
-		console.log(this.scores);
 		this.scores.attempts++;
 		this.scores.byType[questionType].attempts++;
 		if (isCorrect) {
