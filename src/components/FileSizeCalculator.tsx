@@ -16,6 +16,181 @@ interface Question {
 	answer: number;
 	explanation: string[];
 }
+
+// Utility functions moved outside component
+const formatNumber = (num: number): string => {
+	const parts = num.toString().split(".");
+	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	return parts.join(".");
+};
+
+const convertToUnit = (bits: number, targetUnit: string): number => {
+	const conversions: { [key: string]: number } = {
+		bits: 1,
+		bytes: 8,
+		kilobytes: 8 * 1000,
+	};
+	return bits / conversions[targetUnit];
+};
+
+// Generator functions moved outside component
+const generateImageQuestion = (): Question => {
+	const width = (Math.floor(Math.random() * 10) + 1) * 2; // 2-20 pixels (even numbers)
+	const height = (Math.floor(Math.random() * 10) + 1) * 2; // 2-20 pixels
+	const colourDepthOptions = [1, 2, 3, 4, 5, 6, 8];
+	const colourDepth =
+		colourDepthOptions[Math.floor(Math.random() * colourDepthOptions.length)];
+	const targetUnit = ["bits", "bytes"][Math.floor(Math.random() * 2)];
+
+	const sizeInBits = width * height * colourDepth;
+	const answer = convertToUnit(sizeInBits, targetUnit);
+
+	return {
+		category: "CalculateFileSize",
+		type: "image",
+		params: { width, height, colorDepth: colourDepth },
+		targetUnit,
+		answer,
+		explanation: [
+			`Step 1: Identify the values`,
+			`Width: ${width} pixels`,
+			`Height: ${height} pixels`,
+			`Color depth: ${colourDepth} bits`,
+			`Step 2: Multiply width * height * color depth`,
+			`${width} * ${height} * ${colourDepth} = ${sizeInBits} bits`,
+			targetUnit !== "bits" ? `Step 3: Convert to ${targetUnit}` : "",
+			targetUnit !== "bits"
+				? `${sizeInBits} bits = ${formatNumber(answer)} ${targetUnit}`
+				: "",
+		].filter(Boolean), // Remove empty strings
+	};
+};
+
+const generateSoundQuestion = (): Question => {
+	const sampleRates = [20, 40, 60, 80];
+	const sampleRate =
+		sampleRates[Math.floor(Math.random() * sampleRates.length)];
+	const duration = Math.floor(Math.random() * 10) + 1; // 1-10 seconds
+	const bitDepth = [2, 4, 8][Math.floor(Math.random() * 3)];
+	const targetUnit = ["bytes", "kilobytes"][Math.floor(Math.random() * 2)];
+
+	const bits = sampleRate * duration * bitDepth;
+	const answer = convertToUnit(bits, targetUnit);
+
+	return {
+		category: "CalculateFileSize",
+		type: "sound",
+		params: { sampleRate, duration, bitDepth },
+		targetUnit,
+		answer,
+		explanation: [
+			`Step 1: Identify the values`,
+			`Sample rate: ${sampleRate} Hz`,
+			`Duration: ${duration} seconds`,
+			`Bit depth: ${bitDepth} bits`,
+			`Step 2: Multiply sample rate × duration × bit depth`,
+			`${sampleRate} × ${duration} × ${bitDepth} = ${bits} bits`,
+			`Step 3: Convert to ${targetUnit}`,
+			`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
+		],
+	};
+};
+
+const generateTextQuestion = (): Question => {
+	const charCount = (Math.floor(Math.random() * 51) + 10) * 100; // 1000-6000 in steps of 100
+	const bitsPerChar = 8; // ASCII
+	const targetUnit = ["bytes", "kilobytes"][Math.floor(Math.random() * 2)];
+
+	const bits = charCount * bitsPerChar;
+	const answer = convertToUnit(bits, targetUnit);
+
+	return {
+		category: "CalculateFileSize",
+		type: "text",
+		params: { charCount, bitsPerChar },
+		targetUnit,
+		answer,
+		explanation: [
+			`Step 1: Identify the values`,
+			`Number of characters: ${charCount}`,
+			`Bits per character (ASCII): ${bitsPerChar}`,
+			`Step 2: Multiply number of characters x bits per character`,
+			`${charCount} x ${bitsPerChar} = ${bits} bits`,
+			`Step 3: Convert to ${targetUnit}`,
+			`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
+		],
+	};
+};
+
+const generateOptionsQuestion = (): Question => {
+	const numOfBits = Math.floor(Math.random() * 7) + 1; // 1-8  bits
+	const answer = 2 ** numOfBits;
+
+	return {
+		category: "CalculateFileSize",
+		type: "options",
+		params: { numOfBits },
+		targetUnit: "bits",
+		answer,
+		explanation: [
+			`Step 1: Identify the values`,
+			`Number of bits: ${numOfBits}`,
+			`Step 2: Calculate 2 ^ number of bits`,
+			`2^${numOfBits} = ${answer} options`,
+		],
+	};
+};
+
+const generateBitsFromOptionsQuestion = (): Question => {
+	const numberOfOptions = Math.floor(Math.random() * 255) + 1; // 1-256  options
+	const answer = Math.ceil(Math.log(numberOfOptions) / Math.log(2));
+
+	return {
+		category: "CalculateFileSize",
+		type: "bitsFromOptions",
+		params: { numberOfOptions },
+		targetUnit: "bits",
+		answer,
+		explanation: [
+			`Step 1: Identify the values`,
+			`Number of options: ${numberOfOptions}`,
+			`Step 2: Use trial and error - which power of 2 is it less than?`,
+			`2^1 = 2, 2^2 = 4, 2^3 = 8, 2=^4 = 16, 2^5 = 32, 2^6 = 64, 2^7 = 128, 2^8 = 256.`,
+			`Answer: ${answer} bits`,
+			`The Maths: Calculate log2(number of options)`,
+			`log2(${numberOfOptions}) = ${answer} bits`,
+		],
+	};
+};
+
+// Main question generator function - also moved outside since it's pure
+const generateQuestion = (
+	setHasSubmitted: (value: boolean) => void,
+	setCurrentQuestion: (question: Question | null) => void,
+	setUserAnswer: (answer: string) => void,
+	setFeedback: (
+		feedback: {
+			isCorrect: boolean;
+			message: string;
+			explanation: string[];
+		} | null,
+	) => void,
+): void => {
+	setHasSubmitted(false);
+	const questionTypes = [
+		generateImageQuestion,
+		generateSoundQuestion,
+		generateTextQuestion,
+		generateBitsFromOptionsQuestion,
+		generateOptionsQuestion,
+	];
+	const newQuestion =
+		questionTypes[Math.floor(Math.random() * questionTypes.length)]();
+	setCurrentQuestion(newQuestion);
+	setUserAnswer("");
+	setFeedback(null);
+};
+
 interface FileSizeCalculatorProps {
 	scoreManager: ScoreManager;
 }
@@ -28,173 +203,17 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 		message: string;
 		explanation: string[];
 	} | null>(null);
-	const [showHint, setShowHint] = useState<boolean>(false);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	const generateQuestion = (): void => {
-		setHasSubmitted(false);
-		const questionTypes = [
-			generateImageQuestion,
-			generateSoundQuestion,
-			generateTextQuestion,
-			generateBitsFromOptionsQuestion,
-			generateOptionsQuestion,
-		];
-		const newQuestion =
-			questionTypes[Math.floor(Math.random() * questionTypes.length)]();
-		setCurrentQuestion(newQuestion);
-		setUserAnswer("");
-		setFeedback(null);
-	};
-
 	useEffect(() => {
-		generateQuestion();
-	}, []);
-
-	const formatNumber = (num: number): string => {
-		const parts = num.toString().split(".");
-		parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		return parts.join(".");
-	};
-
-	const convertToUnit = (bits: number, targetUnit: string): number => {
-		const conversions: { [key: string]: number } = {
-			bits: 1,
-			bytes: 8,
-			kilobytes: 8 * 1000,
-		};
-		return bits / conversions[targetUnit];
-	};
-
-	const generateImageQuestion = (): Question => {
-		const width = (Math.floor(Math.random() * 10) + 1) * 2; // 2-20 pixels (even numbers)
-		const height = (Math.floor(Math.random() * 10) + 1) * 2; // 2-20 pixels
-		const colourDepthOptions = [1, 2, 3, 4, 5, 6, 8];
-		const colourDepth =
-			colourDepthOptions[Math.floor(Math.random() * colourDepthOptions.length)];
-		const targetUnit = ["bits", "bytes"][Math.floor(Math.random() * 2)];
-
-		const sizeInBits = width * height * colourDepth;
-		const answer = convertToUnit(sizeInBits, targetUnit);
-
-		return {
-			category: "CalculateFileSize",
-			type: "image",
-			params: { width, height, colorDepth: colourDepth },
-			targetUnit,
-			answer,
-			explanation: [
-				`Step 1: Identify the values`,
-				`Width: ${width} pixels`,
-				`Height: ${height} pixels`,
-				`Color depth: ${colourDepth} bits`,
-				`Step 2: Multiply width * height * color depth`,
-				`${width} * ${height} * ${colourDepth} = ${sizeInBits} bits`,
-				targetUnit !== "bits" ? `Step 3: Convert to ${targetUnit}` : "",
-				targetUnit !== "bits"
-					? `${sizeInBits} bits = ${formatNumber(answer)} ${targetUnit}`
-					: "",
-			].filter(Boolean), // Remove empty strings
-		};
-	};
-
-	const generateSoundQuestion = (): Question => {
-		const sampleRates = [20, 40, 60, 80];
-		const sampleRate =
-			sampleRates[Math.floor(Math.random() * sampleRates.length)];
-		const duration = Math.floor(Math.random() * 10) + 1; // 1-10 seconds
-		const bitDepth = [2, 4, 8][Math.floor(Math.random() * 3)];
-		const targetUnit = ["bytes", "kilobytes"][Math.floor(Math.random() * 2)];
-
-		const bits = sampleRate * duration * bitDepth;
-		const answer = convertToUnit(bits, targetUnit);
-
-		return {
-			category: "CalculateFileSize",
-			type: "sound",
-			params: { sampleRate, duration, bitDepth },
-			targetUnit,
-			answer,
-			explanation: [
-				`Step 1: Identify the values`,
-				`Sample rate: ${sampleRate} Hz`,
-				`Duration: ${duration} seconds`,
-				`Bit depth: ${bitDepth} bits`,
-				`Step 2: Multiply sample rate × duration × bit depth`,
-				`${sampleRate} × ${duration} × ${bitDepth} = ${bits} bits`,
-				`Step 3: Convert to ${targetUnit}`,
-				`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
-			],
-		};
-	};
-
-	const generateTextQuestion = (): Question => {
-		const charCount = Math.floor(Math.random() * 2990) + 10; // 1000-6000 characters
-		const bitsPerChar = 8; // ASCII
-		const targetUnit = ["bytes", "kilobytes"][Math.floor(Math.random() * 2)];
-
-		const bits = charCount * bitsPerChar;
-		const answer = convertToUnit(bits, targetUnit);
-
-		return {
-			category: "CalculateFileSize",
-			type: "text",
-			params: { charCount, bitsPerChar },
-			targetUnit,
-			answer,
-			explanation: [
-				`Step 1: Identify the values`,
-				`Number of characters: ${charCount}`,
-				`Bits per character (ASCII): ${bitsPerChar}`,
-				`Step 2: Multiply number of characters x bits per character`,
-				`${charCount} x ${bitsPerChar} = ${bits} bits`,
-				`Step 3: Convert to ${targetUnit}`,
-				`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
-			],
-		};
-	};
-
-	const generateOptionsQuestion = (): Question => {
-		const numOfBits = Math.floor(Math.random() * 7) + 1; // 1-8  bits
-		const answer = 2 ** numOfBits;
-
-		return {
-			category: "CalculateFileSize",
-			type: "options",
-			params: { numOfBits },
-			targetUnit: "bits",
-			answer,
-			explanation: [
-				`Step 1: Identify the values`,
-				`Number of bits: ${numOfBits}`,
-				`Step 2: Calculate 2 ^ number of bits`,
-				`2^${numOfBits} = ${answer} options`,
-			],
-		};
-	};
-
-	const generateBitsFromOptionsQuestion = (): Question => {
-		const numberOfOptions = Math.floor(Math.random() * 255) + 1; // 1-256  options
-		const answer = Math.ceil(Math.log(numberOfOptions) / Math.log(2));
-
-		return {
-			category: "CalculateFileSize",
-			type: "bitsFromOptions",
-			params: { numberOfOptions },
-			targetUnit: "bits",
-			answer,
-			explanation: [
-				`Step 1: Identify the values`,
-				`Number of options: ${numberOfOptions}`,
-				`Step 2: Use trial and error - which power of 2 is it less than?`,
-				`2^1 = 2, 2^2 = 4, 2^3 = 8, 2=^4 = 16, 2^5 = 32, 2^6 = 64, 2^7 = 128, 2^8 = 256.`,
-				`Answer: ${answer} bits`,
-				`The Maths: Calculate log2(number of options)`,
-				`log2(${numberOfOptions}) = ${answer} bits`,
-			],
-		};
-	};
+		generateQuestion(
+			setHasSubmitted,
+			setCurrentQuestion,
+			setUserAnswer,
+			setFeedback,
+		);
+	}, []); // Safe empty dependency - generateQuestion is pure and state setters are stable
 
 	const getQuestionText = (question: Question): string => {
 		switch (question.type) {
@@ -289,24 +308,10 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 									</Button>
 								</form>
 
-								<div className="flex justify-between items-center gap-3 mb-4">
-									<span className="text-md md:text-lg">
-										Show calculation help
-									</span>
-									<Button
-										variant={showHint ? "secondary" : "outline"}
-										onClick={() => setShowHint((v) => !v)}
-									>
-										{showHint ? "Hide" : "Show"}
-									</Button>
-								</div>
-								{showHint && (
-									<Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-none p-6">
-										<AlertDescription className="text-lg md:text-xl font-semibold text-indigo-900">
-											{getCalculationHint()}
-										</AlertDescription>
-									</Alert>
-								)}
+								<details>
+									<summary>Get help</summary>
+									{getCalculationHint()}
+								</details>
 								{feedback && (
 									<Alert
 										className={
@@ -336,10 +341,12 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 											<Button
 												className="mt-4"
 												onClick={() => {
-													generateQuestion();
-													setHasSubmitted(false);
-													setUserAnswer("");
-													setFeedback(null);
+													generateQuestion(
+														setHasSubmitted,
+														setCurrentQuestion,
+														setUserAnswer,
+														setFeedback,
+													);
 												}}
 											>
 												Next Question
