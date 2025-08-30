@@ -1,8 +1,9 @@
-import type React from "react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { type ExplanationSection, formatNumber } from "@/lib/numberUtils";
+import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface Question {
 	category: "CalculateFileSize";
@@ -12,22 +13,8 @@ interface Question {
 	};
 	targetUnit: string;
 	answer: number;
-	explanation: {
-		title: string;
-		details: string[];
-	}[];
+	explanation: ExplanationSection[];
 }
-
-// Utility functions moved outside component
-const formatNumber = (num: number): string => {
-	const parts = num.toString().split(".");
-	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	return parts.join(".");
-};
-
-const unformatNumber = (str: string): string => {
-	return str.replace(/,/g, "");
-};
 
 const convertToUnit = (bits: number, targetUnit: string): number => {
 	const conversions: { [key: string]: number } = {
@@ -225,7 +212,7 @@ const generateQuestion = (
 		feedback: {
 			isCorrect: boolean;
 			message: string;
-			explanation: { title: string; details: string[] }[];
+			explanation: ExplanationSection[];
 		} | null,
 	) => void,
 ): void => {
@@ -254,10 +241,19 @@ export function FileSizeCalculator({ onScoreUpdate }: FileSizeCalculatorProps) {
 	const [feedback, setFeedback] = useState<{
 		isCorrect: boolean;
 		message: string;
-		explanation: { title: string; details: string[] }[];
+		explanation: ExplanationSection[];
 	} | null>(null);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
-	const inputRef = useRef<HTMLInputElement>(null);
+
+	const { handleAnswerChange, handleSubmit, inputRef } = useQuizInteraction(
+		currentQuestion,
+		userAnswer,
+		setUserAnswer,
+		hasSubmitted,
+		setHasSubmitted,
+		setFeedback,
+		onScoreUpdate,
+	);
 
 	// Generate unique IDs for accessibility
 	const calculatorTitleId = useId();
@@ -317,43 +313,6 @@ export function FileSizeCalculator({ onScoreUpdate }: FileSizeCalculatorProps) {
 				return `An image wants to use ${question.params.numberOfOptions} different colours. What's the minimum number of bits to store each pixel?`;
 			default:
 				return "";
-		}
-	};
-
-	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		const inputValue = e.target.value;
-		const rawValue = unformatNumber(inputValue);
-
-		// Only allow numeric input (including decimals)
-		if (rawValue === "" || /^\d*\.?\d*$/.test(rawValue)) {
-			setUserAnswer(rawValue);
-		}
-	};
-
-	const checkAnswer = () => {
-		if (!currentQuestion) return;
-		const answerNum = Number(unformatNumber(userAnswer));
-		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
-
-		// Update score here
-		onScoreUpdate(isCorrect, currentQuestion.category);
-
-		setFeedback({
-			isCorrect,
-			message: isCorrect
-				? "Correct! Well done!"
-				: `Incorrect. The correct answer is ${formatNumber(currentQuestion.answer)}`,
-			explanation: currentQuestion.explanation,
-		});
-	};
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		if (hasSubmitted) return;
-		checkAnswer();
-		setHasSubmitted(true);
-		if (inputRef.current) {
-			inputRef.current.blur();
 		}
 	};
 

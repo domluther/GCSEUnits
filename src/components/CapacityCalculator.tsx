@@ -1,16 +1,14 @@
-import type React from "react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { type ExplanationSection, formatNumber } from "@/lib/numberUtils";
+import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface BaseQuestion {
 	category: "CalculateCapacity";
 	answer: number;
-	explanation: {
-		title: string;
-		details: string[];
-	}[];
+	explanation: ExplanationSection[];
 }
 
 interface FileCountQuestion extends BaseQuestion {
@@ -34,17 +32,6 @@ interface CapacityQuestion extends BaseQuestion {
 }
 
 type Question = FileCountQuestion | CapacityQuestion;
-
-// Utility functions moved outside component
-const formatNumber = (num: number): string => {
-	const parts = num.toString().split(".");
-	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	return parts.join(".");
-};
-
-const unformatNumber = (str: string): string => {
-	return str.replace(/,/g, "");
-};
 
 // Convert value from one unit to another
 const convertValue = (
@@ -215,7 +202,7 @@ const generateQuestion = (
 		feedback: {
 			isCorrect: boolean;
 			message: string;
-			explanation: { title: string; details: string[] }[];
+			explanation: ExplanationSection[];
 		} | null,
 	) => void,
 ): void => {
@@ -238,10 +225,19 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 	const [feedback, setFeedback] = useState<{
 		isCorrect: boolean;
 		message: string;
-		explanation: { title: string; details: string[] }[];
+		explanation: ExplanationSection[];
 	} | null>(null);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
-	const inputRef = useRef<HTMLInputElement>(null);
+
+	const { handleAnswerChange, handleSubmit, inputRef } = useQuizInteraction(
+		currentQuestion,
+		userAnswer,
+		setUserAnswer,
+		hasSubmitted,
+		setHasSubmitted,
+		setFeedback,
+		onScoreUpdate,
+	);
 
 	// Generate unique IDs for accessibility
 	const calculatorTitleId = useId();
@@ -290,43 +286,6 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 			return `A user has a ${question.params.driveSize} ${question.params.driveUnit} drive. How many ${question.params.fileSize} ${question.params.fileUnit} files can they store on it?`;
 		} else {
 			return `A user has ${question.params.fileCount} files that are each ${question.params.fileSize} ${question.params.fileUnit}. What is the total size in ${question.params.driveUnit}?`;
-		}
-	};
-
-	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		const inputValue = e.target.value;
-		const rawValue = unformatNumber(inputValue);
-
-		// Only allow numeric input (including decimals)
-		if (rawValue === "" || /^\d*\.?\d*$/.test(rawValue)) {
-			setUserAnswer(rawValue);
-		}
-	};
-
-	const checkAnswer = () => {
-		if (!currentQuestion) return;
-		const answerNum = Number(unformatNumber(userAnswer));
-		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
-
-		// Update score here
-		onScoreUpdate(isCorrect, currentQuestion.category);
-
-		setFeedback({
-			isCorrect,
-			message: isCorrect
-				? "Correct! Well done!"
-				: `Incorrect. The correct answer is ${formatNumber(currentQuestion.answer)}`,
-			explanation: currentQuestion.explanation,
-		});
-	};
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		if (hasSubmitted) return;
-		checkAnswer();
-		setHasSubmitted(true);
-		if (inputRef.current) {
-			inputRef.current.blur();
 		}
 	};
 

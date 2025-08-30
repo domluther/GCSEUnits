@@ -1,9 +1,15 @@
 import { ArrowRight } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+	type ExplanationSection,
+	formatNumber,
+	roundToPrecision,
+} from "@/lib/numberUtils";
+import { useQuizInteraction } from "@/lib/quizHooks";
 
 interface Question {
 	category: "ConvertUnit";
@@ -11,10 +17,7 @@ interface Question {
 	fromUnit: string;
 	toUnit: string;
 	answer: number;
-	explanation: {
-		title: string;
-		details: string[];
-	}[];
+	explanation: ExplanationSection[];
 }
 
 const ConversionPathVisual: React.FC<{
@@ -41,17 +44,7 @@ const ConversionPathVisual: React.FC<{
 	);
 };
 
-// Utility functions moved outside component
-const formatNumber = (num: number): string => {
-	const parts = num.toString().split(".");
-	parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	return parts.join(".");
-};
-
-const unformatNumber = (str: string): string => {
-	return str.replace(/,/g, "");
-};
-
+// Utility constants and functions moved outside component
 const units = [
 	"bits",
 	"bytes",
@@ -141,10 +134,10 @@ const generateExplanation = (
 	value: number,
 	fromUnit: string,
 	toUnit: string,
-): { title: string; details: string[] }[] => {
+): ExplanationSection[] => {
 	const fromIndex = units.indexOf(fromUnit as (typeof units)[number]);
 	const toIndex = units.indexOf(toUnit as (typeof units)[number]);
-	const explanation: { title: string; details: string[] }[] = [];
+	const explanation: ExplanationSection[] = [];
 
 	// Add identification step
 	explanation.push({
@@ -164,11 +157,11 @@ const generateExplanation = (
 			let step = `Convert ${formatNumber(workingValue)} ${units[workingFromIndex]} to ${units[workingFromIndex + 1]}`;
 			// Bits to bytes - divide by 8, otherwise divide by 1000
 			if (workingFromIndex === 0) {
-				step += ` → ${formatNumber(workingValue)} ÷ 8 = ${formatNumber(workingValue / 8)} ${units[workingFromIndex + 1]}`;
-				workingValue = workingValue / 8;
+				workingValue = roundToPrecision(workingValue / 8);
+				step += ` → ${formatNumber(workingValue * 8)} ÷ 8 = ${formatNumber(workingValue)} ${units[workingFromIndex + 1]}`;
 			} else {
-				step += ` → ${formatNumber(workingValue)} ÷ 1,000 = ${formatNumber(workingValue / 1000)} ${units[workingFromIndex + 1]}`;
-				workingValue = workingValue / 1000;
+				workingValue = roundToPrecision(workingValue / 1000);
+				step += ` → ${formatNumber(workingValue * 1000)} ÷ 1,000 = ${formatNumber(workingValue)} ${units[workingFromIndex + 1]}`;
 			}
 			steps.push(step);
 			workingFromIndex++;
@@ -178,11 +171,11 @@ const generateExplanation = (
 			let step = `Convert ${formatNumber(workingValue)} ${units[workingFromIndex]} to ${units[workingFromIndex - 1]}`;
 			// Bytes to bits - multiply by 8, otherwise multiply by 1000
 			if (workingFromIndex === 1) {
-				step += ` → ${formatNumber(workingValue)} × 8 = ${formatNumber(workingValue * 8)} ${units[workingFromIndex - 1]}`;
-				workingValue = workingValue * 8;
+				workingValue = roundToPrecision(workingValue * 8);
+				step += ` → ${formatNumber(workingValue / 8)} × 8 = ${formatNumber(workingValue)} ${units[workingFromIndex - 1]}`;
 			} else {
-				step += ` → ${formatNumber(workingValue)} × 1,000 = ${formatNumber(workingValue * 1000)} ${units[workingFromIndex - 1]}`;
-				workingValue = workingValue * 1000;
+				workingValue = roundToPrecision(workingValue * 1000);
+				step += ` → ${formatNumber(workingValue / 1000)} × 1,000 = ${formatNumber(workingValue)} ${units[workingFromIndex - 1]}`;
 			}
 			steps.push(step);
 			workingFromIndex--;
@@ -206,7 +199,7 @@ const generateQuestion = (
 		feedback: {
 			isCorrect: boolean;
 			message: string;
-			explanation: { title: string; details: string[] }[];
+			explanation: ExplanationSection[];
 		} | null,
 	) => void,
 	isAdvancedMode: boolean = false,
@@ -259,11 +252,22 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 	const [feedback, setFeedback] = useState<{
 		isCorrect: boolean;
 		message: string;
-		explanation: { title: string; details: string[] }[];
+		explanation: ExplanationSection[];
 	} | null>(null);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 	const [isAdvancedMode, setIsAdvancedMode] = useState<boolean>(false);
-	const inputRef = useRef<HTMLInputElement>(null);
+	const [showUnitsOrder, setShowUnitsOrder] = useState<boolean>(false);
+	const [showConversionPath, setShowConversionPath] = useState<boolean>(false);
+
+	const { handleAnswerChange, handleSubmit, inputRef } = useQuizInteraction(
+		currentQuestion,
+		userAnswer,
+		setUserAnswer,
+		hasSubmitted,
+		setHasSubmitted,
+		setFeedback,
+		onScoreUpdate,
+	);
 
 	// Generate unique IDs for accessibility
 	const convertorTitleId = useId();
@@ -317,43 +321,6 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 		return `Convert ${formatNumber(question.finalValue)} ${question.fromUnit} to ${question.toUnit}`;
 	};
 
-	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		const inputValue = e.target.value;
-		const rawValue = unformatNumber(inputValue);
-
-		// Only allow numeric input (including decimals)
-		if (rawValue === "" || /^\d*\.?\d*$/.test(rawValue)) {
-			setUserAnswer(rawValue);
-		}
-	};
-
-	const checkAnswer = () => {
-		if (!currentQuestion) return;
-		const answerNum = Number(unformatNumber(userAnswer));
-		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.001;
-
-		// Update score here
-		onScoreUpdate(isCorrect, currentQuestion.category);
-
-		setFeedback({
-			isCorrect,
-			message: isCorrect
-				? "Correct! Well done!"
-				: `Incorrect. The correct answer is ${formatNumber(currentQuestion.answer)}`,
-			explanation: currentQuestion.explanation,
-		});
-	};
-
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		if (hasSubmitted) return;
-		checkAnswer();
-		setHasSubmitted(true);
-		if (inputRef.current) {
-			inputRef.current.blur();
-		}
-	};
-
 	return (
 		<main className="w-full" aria-labelledby={convertorTitleId}>
 			<h1 id={convertorTitleId} className="sr-only">
@@ -370,32 +337,55 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 						{/* Settings Section */}
 						<div className="mb-6">
 							<div className="bg-gradient-to-r from-gray-50 to-blue-50 p-4 rounded-lg border border-gray-200">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-3">
-										<span className="text-lg">⚙️</span>
-										<div>
-											<span className="font-semibold text-gray-800">
-												Advanced Mode
-											</span>
-											<p className="text-sm text-gray-600">
-												Allow conversions up to 3 steps apart
-											</p>
-										</div>
+								<div className="flex items-center justify-between gap-4">
+									{/* Units Order Hint */}
+									<div className="flex items-center gap-2">
+										<span className="text-lg">📋</span>
+										<span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
+											Units Order
+										</span>
+										<Switch
+											checked={showUnitsOrder}
+											onCheckedChange={setShowUnitsOrder}
+											className="data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-blue-600"
+										/>
 									</div>
-									<Switch
-										checked={isAdvancedMode}
-										onCheckedChange={(checked) => {
-											setIsAdvancedMode(checked);
-											// Generate new question with the new mode
-											generateQuestion(
-												setHasSubmitted,
-												setCurrentQuestion,
-												setUserAnswer,
-												setFeedback,
-												checked,
-											);
-										}}
-									/>
+
+									{/* Conversion Path Hint */}
+									<div className="flex items-center gap-2">
+										<span className="text-lg">🗺️</span>
+										<span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
+											Conversion Path
+										</span>
+										<Switch
+											checked={showConversionPath}
+											onCheckedChange={setShowConversionPath}
+											className="data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-blue-600"
+										/>
+									</div>
+
+									{/* Advanced Mode */}
+									<div className="flex items-center gap-2">
+										<span className="text-lg">⚙️</span>
+										<span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
+											Advanced Mode
+										</span>
+										<Switch
+											checked={isAdvancedMode}
+											onCheckedChange={(checked) => {
+												setIsAdvancedMode(checked);
+												// Generate new question with the new mode
+												generateQuestion(
+													setHasSubmitted,
+													setCurrentQuestion,
+													setUserAnswer,
+													setFeedback,
+													checked,
+												);
+											}}
+											className="data-[state=unchecked]:bg-gray-200 data-[state=checked]:bg-blue-600"
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -554,73 +544,61 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 									</div>
 								)}
 
-								{/* First Hint Section - Calculation Help */}
-								<details className="mt-6 group">
-									<summary className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 shadow-sm hover:shadow-md list-none [&::-webkit-details-marker]:hidden">
-										<span className="text-blue-800 font-semibold flex items-center">
-											<span className="mr-2 text-lg">🗺️</span>
-											Show conversion path
-											<span className="ml-auto group-open:rotate-180 transition-transform duration-200">
-												▼
-											</span>
-										</span>
-									</summary>
-									<section id={calculationHintId} aria-labelledby={hintTitleId}>
-										<h3 id={hintTitleId} className="sr-only">
-											Calculation Hint
+								{/* First Hint Section - Units Order */}
+								{showUnitsOrder && (
+									<section
+										id={calculationHintId}
+										aria-labelledby={hintTitleId}
+										className="mt-6"
+									>
+										<h3
+											id={hintTitleId}
+											className="text-blue-800 font-semibold flex items-center mb-3"
+										>
+											<span className="mr-2 text-lg">�</span>
+											Units in order (smallest to largest)
 										</h3>
-										<div className="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
-											<div className="space-y-4">
-												<div className="text-purple-800 font-semibold text-sm mb-3">
-													Units in order (smallest to largest):
-												</div>
-												<div className="flex flex-wrap items-center gap-2 mb-4">
-													{units.map((unit, index) => (
-														<React.Fragment key={unit}>
-															<span
-																className={`px-2 py-1 rounded text-sm ${getUnitColor(unit)}`}
-															>
-																{unit}
-															</span>
-															{index < units.length - 1 && (
-																<ArrowRight className="h-4 w-4 text-purple-400" />
-															)}
-														</React.Fragment>
-													))}
-												</div>
+										<div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
+											<div className="flex flex-wrap items-center gap-2">
+												{units.map((unit, index) => (
+													<React.Fragment key={unit}>
+														<span
+															className={`px-2 py-1 rounded text-sm ${getUnitColor(unit)}`}
+														>
+															{unit}
+														</span>
+														{index < units.length - 1 && (
+															<ArrowRight className="h-4 w-4 text-purple-400" />
+														)}
+													</React.Fragment>
+												))}
 											</div>
 										</div>
 									</section>
-								</details>
+								)}
 
 								{/* Second Hint Section - Conversion Path */}
-								<details className="mt-6 group">
-									<summary className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded-lg px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 shadow-sm hover:shadow-md list-none [&::-webkit-details-marker]:hidden">
-										<span className="text-purple-800 font-semibold flex items-center">
-											<span className="mr-2 text-lg">🗺️</span>
-											Path for this conversion
-											<span className="ml-auto group-open:rotate-180 transition-transform duration-200">
-												▼
-											</span>
-										</span>
-									</summary>
+								{showConversionPath && (
 									<section
 										id={conversionHintId}
 										aria-labelledby={conversionHintTitleId}
+										className="mt-6"
 									>
-										<h3 id={conversionHintTitleId} className="sr-only">
-											Conversion Path
+										<h3
+											id={conversionHintTitleId}
+											className="text-purple-800 font-semibold flex items-center mb-3"
+										>
+											<span className="mr-2 text-lg">🗺️</span>
+											Path for this conversion
 										</h3>
-										<div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
-											<div className="space-y-4">
-												<ConversionPathVisual
-													fromUnit={currentQuestion.fromUnit}
-													toUnit={currentQuestion.toUnit}
-												/>
-											</div>
+										<div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
+											<ConversionPathVisual
+												fromUnit={currentQuestion.fromUnit}
+												toUnit={currentQuestion.toUnit}
+											/>
 										</div>
 									</section>
-								</details>
+								)}
 							</section>
 						) : (
 							<section
