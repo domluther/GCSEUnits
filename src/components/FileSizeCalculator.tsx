@@ -3,7 +3,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { ScoreManager } from "@/lib/scoreManager";
 
 interface Question {
 	category: "CalculateFileSize";
@@ -242,10 +241,10 @@ const generateQuestion = (
 };
 
 interface FileSizeCalculatorProps {
-	scoreManager: ScoreManager;
+	onScoreUpdate: (isCorrect: boolean, questionType: string) => void;
 }
 
-export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
+export function FileSizeCalculator({ onScoreUpdate }: FileSizeCalculatorProps) {
 	const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 	const [userAnswer, setUserAnswer] = useState<string>("");
 	const [feedback, setFeedback] = useState<{
@@ -327,7 +326,7 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
 
 		// Update score here
-		scoreManager.recordScore(isCorrect, currentQuestion.category);
+		onScoreUpdate(isCorrect, currentQuestion.category);
 
 		setFeedback({
 			isCorrect,

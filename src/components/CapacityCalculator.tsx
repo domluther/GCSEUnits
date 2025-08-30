@@ -3,24 +3,37 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { ScoreManager } from "@/lib/scoreManager";
 
-interface Question {
+interface BaseQuestion {
 	category: "CalculateCapacity";
-	type: "fileCount" | "capacity";
-	params: {
-		driveSize?: number;
-		driveUnit: string;
-		fileSize: number;
-		fileUnit: string;
-		fileCount?: number;
-	};
 	answer: number;
 	explanation: {
 		title: string;
 		details: string[];
 	}[];
 }
+
+interface FileCountQuestion extends BaseQuestion {
+	type: "fileCount";
+	params: {
+		driveSize: number;
+		driveUnit: string;
+		fileSize: number;
+		fileUnit: string;
+	};
+}
+
+interface CapacityQuestion extends BaseQuestion {
+	type: "capacity";
+	params: {
+		driveUnit: string;
+		fileSize: number;
+		fileUnit: string;
+		fileCount: number;
+	};
+}
+
+type Question = FileCountQuestion | CapacityQuestion;
 
 // Utility functions moved outside component
 const formatNumber = (num: number): string => {
@@ -82,11 +95,14 @@ const getSimpleDriveSize = (): { size: number; unit: string } => {
 	return simpleSizes[Math.floor(Math.random() * simpleSizes.length)];
 };
 
-const generateExplanation = (question: Question): { title: string; details: string[] }[] => {
+const generateExplanation = (
+	question: Question,
+): { title: string; details: string[] }[] => {
 	const steps: { title: string; details: string[] }[] = [];
-	
+
 	if (question.type === "capacity") {
-		const totalInFileUnits = question.params.fileSize * question.params.fileCount!;
+		const totalInFileUnits =
+			question.params.fileSize * question.params.fileCount;
 		const finalValue = convertValue(
 			totalInFileUnits,
 			question.params.fileUnit,
@@ -96,7 +112,7 @@ const generateExplanation = (question: Question): { title: string; details: stri
 		steps.push({
 			title: "Calculate the total size of all files",
 			details: [
-				`${formatNumber(question.params.fileCount!)} files × ${formatNumber(question.params.fileSize)} ${question.params.fileUnit} = ${formatNumber(totalInFileUnits)} ${question.params.fileUnit}`,
+				`${formatNumber(question.params.fileCount)} files × ${formatNumber(question.params.fileSize)} ${question.params.fileUnit} = ${formatNumber(totalInFileUnits)} ${question.params.fileUnit}`,
 			],
 		});
 
@@ -110,7 +126,7 @@ const generateExplanation = (question: Question): { title: string; details: stri
 		}
 	} else {
 		const driveInFileUnits = convertValue(
-			question.params.driveSize!,
+			question.params.driveSize,
 			question.params.driveUnit,
 			question.params.fileUnit,
 		);
@@ -118,7 +134,7 @@ const generateExplanation = (question: Question): { title: string; details: stri
 		steps.push({
 			title: `Convert drive size to ${question.params.fileUnit}`,
 			details: [
-				`${question.params.driveSize!} ${question.params.driveUnit} = ${formatNumber(driveInFileUnits)} ${question.params.fileUnit}`,
+				`${question.params.driveSize} ${question.params.driveUnit} = ${formatNumber(driveInFileUnits)} ${question.params.fileUnit}`,
 			],
 		});
 
@@ -129,11 +145,11 @@ const generateExplanation = (question: Question): { title: string; details: stri
 			],
 		});
 	}
-	
+
 	return steps;
 };
 
-const generateFileCountQuestion = (): Question => {
+const generateFileCountQuestion = (): FileCountQuestion => {
 	// Generate "How many files can fit" question
 	const drive = getSimpleDriveSize();
 	const file = getSimpleFileSize();
@@ -147,7 +163,7 @@ const generateFileCountQuestion = (): Question => {
 		fileUnit: file.unit,
 	};
 
-	const question: Question = {
+	const question: FileCountQuestion = {
 		category: "CalculateCapacity",
 		type: "fileCount",
 		params,
@@ -159,7 +175,7 @@ const generateFileCountQuestion = (): Question => {
 	return question;
 };
 
-const generateCapacityQuestion = (): Question => {
+const generateCapacityQuestion = (): CapacityQuestion => {
 	// Generate "Total size of files" question
 	const file = getSimpleFileSize();
 	const fileCount = Math.floor(Math.random() * 8 + 2) * 5; // Will generate 10, 15, 20, 25, 30, 35, 40, or 45
@@ -174,7 +190,7 @@ const generateCapacityQuestion = (): Question => {
 		fileUnit: file.unit,
 	};
 
-	const question: Question = {
+	const question: CapacityQuestion = {
 		category: "CalculateCapacity",
 		type: "capacity",
 		params,
@@ -201,17 +217,18 @@ const generateQuestion = (
 ): void => {
 	setHasSubmitted(false);
 	const questionTypes = [generateFileCountQuestion, generateCapacityQuestion];
-	const newQuestion = questionTypes[Math.floor(Math.random() * questionTypes.length)]();
+	const newQuestion =
+		questionTypes[Math.floor(Math.random() * questionTypes.length)]();
 	setCurrentQuestion(newQuestion);
 	setUserAnswer("");
 	setFeedback(null);
 };
 
 interface CapacityCalculatorProps {
-	scoreManager: ScoreManager;
+	onScoreUpdate: (isCorrect: boolean, questionType: string) => void;
 }
 
-export function CapacityCalculator({ scoreManager }: CapacityCalculatorProps) {
+export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 	const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 	const [userAnswer, setUserAnswer] = useState<string>("");
 	const [feedback, setFeedback] = useState<{
@@ -266,9 +283,9 @@ export function CapacityCalculator({ scoreManager }: CapacityCalculatorProps) {
 
 	const getQuestionText = (question: Question): string => {
 		if (question.type === "fileCount") {
-			return `A user has a ${question.params.driveSize!} ${question.params.driveUnit} drive. How many ${question.params.fileSize} ${question.params.fileUnit} files can they store on it?`;
+			return `A user has a ${question.params.driveSize} ${question.params.driveUnit} drive. How many ${question.params.fileSize} ${question.params.fileUnit} files can they store on it?`;
 		} else {
-			return `A user has ${question.params.fileCount!} files that are each ${question.params.fileSize} ${question.params.fileUnit}. What is the total size in ${question.params.driveUnit}?`;
+			return `A user has ${question.params.fileCount} files that are each ${question.params.fileSize} ${question.params.fileUnit}. What is the total size in ${question.params.driveUnit}?`;
 		}
 	};
 
@@ -282,7 +299,7 @@ export function CapacityCalculator({ scoreManager }: CapacityCalculatorProps) {
 		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
 
 		// Update score here
-		scoreManager.recordScore(isCorrect, currentQuestion.category);
+		onScoreUpdate(isCorrect, currentQuestion.category);
 
 		setFeedback({
 			isCorrect,
@@ -474,7 +491,7 @@ export function CapacityCalculator({ scoreManager }: CapacityCalculatorProps) {
 										Capacity Calculator
 									</h2>
 									<p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
-										Practice calculating storage capacity and file counts. 
+										Practice calculating storage capacity and file counts.
 										Master digital storage concepts!
 									</p>
 									<button

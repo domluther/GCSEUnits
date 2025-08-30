@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CapacityCalculator, QuizButton, ScoreButton, SiteLayout, StatsModal } from "@/components";
+import {
+	CapacityCalculator,
+	QuizButton,
+	ScoreButton,
+	SiteLayout,
+	StatsModal,
+} from "@/components";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
 import { ScoreManager } from "@/lib/scoreManager";
 import { SITE_CONFIG } from "@/lib/siteConfig";
@@ -13,6 +19,9 @@ function HomePage() {
 	// Mode state: 0 = File Size, 1 = Storage, 2 = Unit Convertor
 	const [mode, setMode] = useState(0);
 	const [showStatsModal, setShowStatsModal] = useState(false);
+	// Score update trigger to force re-renders when score changes
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const [_scoreUpdateTrigger, setScoreUpdateTrigger] = useState(0);
 
 	const siteConfig = SITE_CONFIG;
 
@@ -20,7 +29,14 @@ function HomePage() {
 	const [scoreManager] = useState(
 		() => new ScoreManager(siteConfig.siteKey, siteConfig.scoring.customLevels),
 	);
+
 	const overallStats = scoreManager.getOverallStats();
+
+	// Function to record score and trigger re-render
+	const recordScoreAndUpdate = (isCorrect: boolean, questionType: string) => {
+		scoreManager.recordScore(isCorrect, questionType);
+		setScoreUpdateTrigger((prev) => prev + 1);
+	};
 	// Mode button data
 	const MODES = [
 		"File Size Calculator",
@@ -61,8 +77,12 @@ function HomePage() {
 			</div>
 			{/* Main Body: Only File Size Calculator for now */}
 			<div className="max-w-4xl mx-auto">
-				{mode === 0 && <FileSizeCalculator scoreManager={scoreManager} />}
-				{mode === 1 && <CapacityCalculator scoreManager={scoreManager} />}
+				{mode === 0 && (
+					<FileSizeCalculator onScoreUpdate={recordScoreAndUpdate} />
+				)}
+				{mode === 1 && (
+					<CapacityCalculator onScoreUpdate={recordScoreAndUpdate} />
+				)}
 				{mode === 2 && (
 					<div className="text-center text-gray-400 py-16 text-xl">
 						Coming soon!
