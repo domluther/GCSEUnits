@@ -269,6 +269,7 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 	}, []); // Safe empty dependency - generateQuestion is pure and state setters are stable
 
 	// Global keyboard listener for Enter key when hasSubmitted is true
+	// biome-ignore lint/correctness/useExhaustiveDependencies: inputRef.current is stable and doesn't need to be in dependencies
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === "Enter" && hasSubmitted && currentQuestion) {

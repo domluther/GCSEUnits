@@ -22,7 +22,7 @@ export interface QuizFeedback {
 	explanation: ExplanationSection[];
 }
 
-export type UseQuizInteractionOptions = {};
+export type UseQuizInteractionOptions = Record<string, never>;
 
 /**
  * Custom hook that provides common quiz interaction handlers
