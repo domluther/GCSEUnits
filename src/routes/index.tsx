@@ -6,6 +6,7 @@ import {
 	ScoreButton,
 	SiteLayout,
 	StatsModal,
+	UnitConvertor,
 } from "@/components";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
 import { ScoreManager } from "@/lib/scoreManager";
@@ -83,11 +84,7 @@ function HomePage() {
 				{mode === 1 && (
 					<CapacityCalculator onScoreUpdate={recordScoreAndUpdate} />
 				)}
-				{mode === 2 && (
-					<div className="text-center text-gray-400 py-16 text-xl">
-						Coming soon!
-					</div>
-				)}
+				{mode === 2 && <UnitConvertor onScoreUpdate={recordScoreAndUpdate} />}
 			</div>
 			<StatsModal
 				isOpen={showStatsModal}

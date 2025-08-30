@@ -22,6 +22,7 @@ export { SiteLayout } from "./SiteLayout";
 export { SiteNavigation } from "./SiteNavigation";
 // Modal Components
 export { StatsModal } from "./StatsModal";
+export { UnitConvertor } from "./UnitConvertor";
 
 /**
  * Usage Example:
