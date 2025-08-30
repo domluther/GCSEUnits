@@ -1,7 +1,6 @@
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { ScoreManager } from "@/lib/scoreManager";
@@ -14,7 +13,10 @@ interface Question {
 	};
 	targetUnit: string;
 	answer: number;
-	explanation: string[];
+	explanation: {
+		title: string;
+		details: string[];
+	}[];
 }
 
 // Utility functions moved outside component
@@ -48,21 +50,33 @@ const generateImageQuestion = (): Question => {
 	return {
 		category: "CalculateFileSize",
 		type: "image",
-		params: { width, height, colorDepth: colourDepth },
+		params: { width, height, colourDepth },
 		targetUnit,
 		answer,
 		explanation: [
-			`Step 1: Identify the values`,
-			`Width: ${width} pixels`,
-			`Height: ${height} pixels`,
-			`Color depth: ${colourDepth} bits`,
-			`Step 2: Multiply width * height * color depth`,
-			`${width} * ${height} * ${colourDepth} = ${sizeInBits} bits`,
-			targetUnit !== "bits" ? `Step 3: Convert to ${targetUnit}` : "",
-			targetUnit !== "bits"
-				? `${sizeInBits} bits = ${formatNumber(answer)} ${targetUnit}`
-				: "",
-		].filter(Boolean), // Remove empty strings
+			{
+				title: "Identify the values",
+				details: [
+					`Width: ${width} pixels`,
+					`Height: ${height} pixels`,
+					`Color depth: ${colourDepth} bits`,
+				],
+			},
+			{
+				title: "Multiply width × height × color depth",
+				details: [`${width} × ${height} × ${colourDepth} = ${formatNumber(sizeInBits)} bits`],
+			},
+			...(targetUnit !== "bits"
+				? [
+						{
+							title: `Convert to ${targetUnit}`,
+							details: [
+								`${formatNumber(sizeInBits)} bits = ${formatNumber(answer)} ${targetUnit}`,
+							],
+						},
+					]
+				: []),
+		],
 	};
 };
 
@@ -84,14 +98,22 @@ const generateSoundQuestion = (): Question => {
 		targetUnit,
 		answer,
 		explanation: [
-			`Step 1: Identify the values`,
-			`Sample rate: ${sampleRate} Hz`,
-			`Duration: ${duration} seconds`,
-			`Bit depth: ${bitDepth} bits`,
-			`Step 2: Multiply sample rate × duration × bit depth`,
-			`${sampleRate} × ${duration} × ${bitDepth} = ${bits} bits`,
-			`Step 3: Convert to ${targetUnit}`,
-			`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
+			{
+				title: "Identify the values",
+				details: [
+					`Sample rate: ${sampleRate} Hz`,
+					`Duration: ${duration} seconds`,
+					`Bit depth: ${bitDepth} bits`,
+				],
+			},
+			{
+				title: "Multiply sample rate × duration × bit depth",
+				details: [`${sampleRate} × ${duration} × ${bitDepth} = ${formatNumber(bits)} bits`],
+			},
+			{
+				title: `Convert to ${targetUnit}`,
+				details: [`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`],
+			},
 		],
 	};
 };
@@ -111,13 +133,21 @@ const generateTextQuestion = (): Question => {
 		targetUnit,
 		answer,
 		explanation: [
-			`Step 1: Identify the values`,
-			`Number of characters: ${charCount}`,
-			`Bits per character (ASCII): ${bitsPerChar}`,
-			`Step 2: Multiply number of characters x bits per character`,
-			`${charCount} x ${bitsPerChar} = ${bits} bits`,
-			`Step 3: Convert to ${targetUnit}`,
-			`${bits} bits = ${formatNumber(answer)} ${targetUnit}`,
+			{
+				title: "Identify the values",
+				details: [
+					`Number of characters: ${charCount}`,
+					`Bits per character (ASCII): ${bitsPerChar}`,
+				],
+			},
+			{
+				title: "Multiply number of characters × bits per character",
+				details: [`${charCount} × ${bitsPerChar} = ${formatNumber(bits)} bits`],
+			},
+			{
+				title: `Convert to ${targetUnit}`,
+				details: [`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`],
+			},
 		],
 	};
 };
@@ -133,10 +163,14 @@ const generateOptionsQuestion = (): Question => {
 		targetUnit: "bits",
 		answer,
 		explanation: [
-			`Step 1: Identify the values`,
-			`Number of bits: ${numOfBits}`,
-			`Step 2: Calculate 2 ^ number of bits`,
-			`2^${numOfBits} = ${answer} options`,
+			{
+				title: "Identify the values",
+				details: [`Number of bits: ${numOfBits}`],
+			},
+			{
+				title: "Calculate 2 ^ number of bits",
+				details: [`2^${numOfBits} = ${answer} options`],
+			},
 		],
 	};
 };
@@ -152,13 +186,21 @@ const generateBitsFromOptionsQuestion = (): Question => {
 		targetUnit: "bits",
 		answer,
 		explanation: [
-			`Step 1: Identify the values`,
-			`Number of options: ${numberOfOptions}`,
-			`Step 2: Use trial and error - which power of 2 is it less than?`,
-			`2^1 = 2, 2^2 = 4, 2^3 = 8, 2=^4 = 16, 2^5 = 32, 2^6 = 64, 2^7 = 128, 2^8 = 256.`,
-			`Answer: ${answer} bits`,
-			`The Maths: Calculate log2(number of options)`,
-			`log2(${numberOfOptions}) = ${answer} bits`,
+			{
+				title: "Identify the values",
+				details: [`Number of options: ${numberOfOptions}`],
+			},
+			{
+				title: "Use trial and error - which power of 2 is it less than?",
+				details: [
+					`2^1 = 2, 2^2 = 4, 2^3 = 8, 2^4 = 16, 2^5 = 32, 2^6 = 64, 2^7 = 128, 2^8 = 256...`,
+					`Answer: ${answer} bits`,
+				],
+			},
+			{
+				title: "The Maths: Calculate log2(number of options)",
+				details: [`log2(${numberOfOptions}) = ${answer} bits`],
+			},
 		],
 	};
 };
@@ -172,7 +214,7 @@ const generateQuestion = (
 		feedback: {
 			isCorrect: boolean;
 			message: string;
-			explanation: string[];
+			explanation: { title: string; details: string[] }[];
 		} | null,
 	) => void,
 ): void => {
@@ -201,10 +243,19 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 	const [feedback, setFeedback] = useState<{
 		isCorrect: boolean;
 		message: string;
-		explanation: string[];
+		explanation: { title: string; details: string[] }[];
 	} | null>(null);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	// Generate unique IDs for accessibility
+	const calculatorTitleId = useId();
+	const currentQuestionId = useId();
+	const answerInputId = useId();
+	const calculationHintId = useId();
+	const hintTitleId = useId();
+	const feedbackMessageId = useId();
+	const welcomeMessageId = useId();
 
 	useEffect(() => {
 		generateQuestion(
@@ -215,10 +266,36 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 		);
 	}, []); // Safe empty dependency - generateQuestion is pure and state setters are stable
 
+	// Global keyboard listener for Enter key when hasSubmitted is true
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Enter" && hasSubmitted && currentQuestion) {
+				// Don't trigger if focus is in the input (let form submission handle it)
+				if (document.activeElement !== inputRef.current) {
+					generateQuestion(
+						setHasSubmitted,
+						setCurrentQuestion,
+						setUserAnswer,
+						setFeedback,
+					);
+					// Focus management - return focus to input after new question loads
+					setTimeout(() => {
+						if (inputRef.current) {
+							inputRef.current.focus();
+						}
+					}, 100);
+				}
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [hasSubmitted, currentQuestion]);
+
 	const getQuestionText = (question: Question): string => {
 		switch (question.type) {
 			case "image":
-				return `An image is ${question.params.width} pixels by ${question.params.height} pixels using a colour depth of ${question.params.colorDepth} bits. How large is the file? Give your answer in ${question.targetUnit}.`;
+				return `An image is ${question.params.width} pixels by ${question.params.height} pixels using a colour depth of ${question.params.colourDepth} bits. How large is the file? Give your answer in ${question.targetUnit}.`;
 			case "sound":
 				return `A sound file has a sample rate of ${question.params.sampleRate} Hz, duration of ${question.params.duration} seconds, and bit depth of ${question.params.bitDepth} bits. What is the file size in ${question.targetUnit}?`;
 			case "text":
@@ -282,87 +359,224 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 	};
 
 	return (
-		<div className="w-full">
+		<main className="w-full" aria-labelledby={calculatorTitleId}>
+			<h1 id={calculatorTitleId} className="sr-only">
+				File Size Calculator
+			</h1>
 			<div className="p-4">
 				<Card className="mx-auto shadow-xl bg-white/80 backdrop-blur">
 					<CardContent className="space-y-6 p-8">
+						{/* Live region for screen reader announcements */}
+						<div aria-live="polite" aria-atomic="true" className="sr-only">
+							{feedback?.message}
+						</div>
+
 						{currentQuestion ? (
-							<>
-								<div className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow">
+							<section aria-labelledby={currentQuestionId}>
+								<h2
+									id={currentQuestionId}
+									className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow"
+								>
 									{getQuestionText(currentQuestion)}
-								</div>
-								<form onSubmit={handleSubmit} className="space-y-4">
-									<Input
-										ref={inputRef}
-										type="number"
-										value={userAnswer}
-										onChange={handleAnswerChange}
-										placeholder="Enter your answer"
-										disabled={hasSubmitted}
-									/>
-									<Button
-										type="submit"
-										disabled={hasSubmitted || userAnswer === ""}
-									>
-										Submit
-									</Button>
+								</h2>
+								<form onSubmit={handleSubmit} className="mt-6">
+									<div className="space-y-2">
+										<label htmlFor={answerInputId} className="sr-only">
+											Your answer for: {getQuestionText(currentQuestion)}
+										</label>
+										<Input
+											id={answerInputId}
+											ref={inputRef}
+											type="number"
+											step="any"
+											value={userAnswer}
+											onChange={handleAnswerChange}
+											placeholder="Enter your answer and press Enter"
+											disabled={hasSubmitted}
+											aria-describedby={calculationHintId}
+											aria-invalid={
+												feedback && !feedback.isCorrect ? "true" : "false"
+											}
+											className="text-lg p-4 text-center font-semibold"
+										/>
+									</div>
 								</form>
 
-								<details>
-									<summary>Get help</summary>
-									{getCalculationHint()}
-								</details>
 								{feedback && (
-									<Alert
-										className={
-											feedback.isCorrect
-												? "bg-green-100 border-green-300"
-												: "bg-red-100 border-red-300"
-										}
-									>
-										<AlertDescription>
-											<div
-												className={
-													feedback.isCorrect ? "text-green-700" : "text-red-700"
-												}
-											>
-												{feedback.message}
-											</div>
-											<div className="mt-2 text-gray-700">
-												<div className="font-semibold text-blue-900">
-													Explanation:
-												</div>
-												{feedback.explanation.map((step) => (
-													<div key={step} className="ml-4 mt-1 text-blue-700">
-														{step}
+									<div className="mt-6">
+										<Alert
+											id={feedbackMessageId}
+											aria-live="polite"
+											className={`border-2 shadow-lg ${
+												feedback.isCorrect
+													? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-green-100"
+													: "bg-gradient-to-r from-red-50 to-pink-50 border-red-300 shadow-red-100"
+											}`}
+										>
+											<AlertDescription>
+												<div className="space-y-4 w-full">
+													{/* Result Header */}
+													<div
+														className={`p-4 rounded-lg ${
+															feedback.isCorrect
+																? "bg-gradient-to-r from-green-100 to-emerald-100"
+																: "bg-gradient-to-r from-red-100 to-pink-100"
+														}`}
+													>
+														<div
+															className={`flex items-center text-xl font-bold ${
+																feedback.isCorrect
+																	? "text-green-800"
+																	: "text-red-800"
+															}`}
+														>
+															<span className="text-2xl mr-3">
+																{feedback.isCorrect ? "🎉" : "❌"}
+															</span>
+															<span>
+																{feedback.isCorrect
+																	? "Excellent work!"
+																	: "Not quite right"}
+															</span>
+														</div>
+														{!feedback.isCorrect && (
+															<div className="mt-2 text-red-700 font-semibold">
+																The correct answer is{" "}
+																<span className="text-red-900 bg-red-200 px-2 py-1 rounded">
+																	{formatNumber(currentQuestion.answer)}
+																</span>
+															</div>
+														)}
 													</div>
-												))}
-											</div>
-											<Button
-												className="mt-4"
-												onClick={() => {
-													generateQuestion(
-														setHasSubmitted,
-														setCurrentQuestion,
-														setUserAnswer,
-														setFeedback,
-													);
-												}}
-											>
-												Next Question
-											</Button>
-										</AlertDescription>
-									</Alert>
+
+													{/* Explanation Section */}
+													<div className="space-y-4">
+														<h3 className="font-bold text-indigo-900 text-lg mb-3 flex items-center">
+															<span className="mr-2">📚</span>
+															Step-by-step explanation:
+														</h3>
+														{feedback.explanation.map(
+															(section, sectionIndex) => (
+																<div
+																	key={section.title}
+																	className="bg-white bg-opacity-50 p-4 rounded-lg border border-gray-200"
+																>
+																	<h4 className="font-bold text-indigo-900 text-base mb-2 flex items-center">
+																		<span className="bg-indigo-100 text-indigo-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold mr-3 flex-shrink-0">
+																			{sectionIndex + 1}
+																		</span>
+																		{section.title}
+																	</h4>
+																	<ul className="ml-9 space-y-1">
+																		{section.details.map((detail) => (
+																			<li
+																				key={detail}
+																				className="text-gray-800"
+																			>
+																				<span className="text-indigo-600 mr-2">
+																					•
+																				</span>
+																				{detail}
+																			</li>
+																		))}
+																	</ul>
+																</div>
+															),
+														)}
+													</div>
+
+													{/* Next Question Button */}
+													<div className="flex justify-center pt-2">
+														<button
+															type="button"
+															onClick={() => {
+																generateQuestion(
+																	setHasSubmitted,
+																	setCurrentQuestion,
+																	setUserAnswer,
+																	setFeedback,
+																);
+																// Focus management - return focus to input after new question loads
+																setTimeout(() => {
+																	if (inputRef.current) {
+																		inputRef.current.focus();
+																	}
+																}, 100);
+															}}
+															aria-label="Generate next question"
+															className="px-8 py-3 font-semibold rounded-lg transition-all duration-200 shadow-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white hover:shadow-xl transform hover:-translate-y-1"
+														>
+															<span className="mr-2">🎯</span>
+															Next Question
+														</button>
+													</div>
+												</div>
+											</AlertDescription>
+										</Alert>
+									</div>
 								)}
-							</>
+
+																<details className="mt-6 group">
+									<summary className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 shadow-sm hover:shadow-md list-none [&::-webkit-details-marker]:hidden">
+										<span className="text-blue-800 font-semibold flex items-center">
+											<span className="mr-2 text-lg">💡</span>
+											Get calculation help
+											<span className="ml-auto group-open:rotate-180 transition-transform duration-200">
+												▼
+											</span>
+										</span>
+									</summary>
+									<section id={calculationHintId} aria-labelledby={hintTitleId}>
+										<h3 id={hintTitleId} className="sr-only">
+											Calculation Hint
+										</h3>
+										<div className="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 rounded-r-lg shadow-inner">
+											<div className="text-blue-800 font-light text-sm">
+												{getCalculationHint()}
+											</div>
+										</div>
+									</section>
+								</details>
+
+							</section>
 						) : (
-							<div className="text-lg md:text-2xl text-center text-indigo-600">
-								Click "New Question" to begin!
-							</div>
+							<section
+								className="text-center py-12"
+								aria-labelledby={welcomeMessageId}
+							>
+								<div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-8 rounded-xl border border-indigo-200 shadow-lg">
+									<div className="text-6xl mb-4">🧮</div>
+									<h2
+										id={welcomeMessageId}
+										className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4"
+									>
+										File Size Calculator
+									</h2>
+									<p className="text-lg text-gray-600 mb-6 max-w-md mx-auto">
+										Practice calculating file sizes for images, sounds, and text
+										files. Master the fundamentals of digital storage!
+									</p>
+									<button
+										type="button"
+										onClick={() => {
+											generateQuestion(
+												setHasSubmitted,
+												setCurrentQuestion,
+												setUserAnswer,
+												setFeedback,
+											);
+										}}
+										className="px-8 py-3 font-semibold rounded-lg transition-all duration-200 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white hover:shadow-xl transform hover:-translate-y-1"
+									>
+										<span className="mr-2">🚀</span>
+										Start Practicing
+									</button>
+								</div>
+							</section>
 						)}
 					</CardContent>
 				</Card>
 			</div>
-		</div>
+		</main>
 	);
 }
