@@ -1,161 +1,158 @@
 
-# Vite + React 19 + TypeScript Template
+# GCSE Units - Computer Science Practice
 
-This template provides a modern setup for building React applications with Vite, TypeScript, and Tailwind CSS. It includes fast refresh, advanced routing, linting, formatting, and utility libraries for rapid development.
+A comprehensive practice application for GCSE Computer Science students to master unit conversions, file size calculations, and storage capacity problems. Built with modern React, TypeScript, and Tailwind CSS.
 
-## Features
+## 🎯 Features
 
-- **React 19** & **React DOM**
-- **TypeScript**
-- **Vite** (with [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) for fast refresh)
-- **Tailwind CSS** (with [@tailwindcss/vite](https://github.com/privatenumber/tailwindcss-vite), [tailwind-merge](https://github.com/dcastil/tailwind-merge), and [tw-animate-css](https://github.com/rohit-gohri/tw-animate-css))
-- **TanStack React Router** ([react-router](https://tanstack.com/router/v1), [devtools](https://tanstack.com/router/v1/docs/devtools), [plugin](https://tanstack.com/router/v1/docs/plugins))
-- **Lucide React** icons
-- **Utility libraries:** [clsx](https://github.com/lukeed/clsx), [class-variance-authority](https://cva.style/)
-- **Biome** for linting and formatting
-- **Vitest + Testing Library** for unit and component testing
-- **Dark/Light Theme Support** with system preference detection
+- **Unit Conversion Practice** - Convert between bytes, kilobytes, megabytes, gigabytes, and terabytes
+- **File Size Calculator** - Calculate image, sound, and text file sizes with detailed explanations  
+- **Capacity Calculator** - Determine storage requirements and file counts
+- **Progress Tracking** - Built-in scoring system with detailed analytics
+- **Responsive Design** - Works seamlessly on desktop, tablet, and mobile
+- **Educational Explanations** - Step-by-step breakdowns for every calculation
 
-## Getting Started
+## 🚀 Live Demo
+
+Visit the live application: [GCSE Units Practice](https://gcseunits.netlify.app/)
+
+## 🛠️ Technology Stack
+
+- **React 19** & **TypeScript** for type-safe component development
+- **Vite** for fast development and optimized builds
+- **TanStack React Router** for client-side routing
+- **Tailwind CSS** for responsive, utility-first styling
+- **Biome** for consistent code formatting and linting
+- **Vitest + Testing Library** for comprehensive testing
+
+## 🎮 How to Use
+
+### Unit Converter
+Practice converting between different data units:
+- Enter a value and select source/target units
+- Get instant feedback with detailed conversion steps
+- Advanced mode includes decimal and complex conversions
+
+### File Size Calculator  
+Calculate storage requirements for digital files:
+- **Image Files:** Based on dimensions and color depth
+- **Sound Files:** Based on sample rate, bit depth, and duration
+- **Text Files:** Based on character count and encoding
+
+### Capacity Calculator
+Understand storage capacity relationships:
+- Calculate how many files fit on a storage device
+- Determine total storage needed for multiple files
+- Learn the relationship between file sizes and storage capacity
+
+## 🏁 Getting Started
+
+### Prerequisites
+- Node.js 18+ and npm
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/domluther/GCSEUnits.git
+cd GCSEUnits
+
+# Install dependencies
 npm install
-```
 
-### Development
-
-```bash
+# Start development server
 npm run dev
 ```
 
-### Build
+### Available Scripts
+
+### Available Scripts
 
 ```bash
+# Development server
+npm run dev
+
+# Production build
 npm run build
-```
 
-### Preview Production Build
-
-```bash
+# Preview production build
 npm run preview
-```
 
-### Lint & Format
-
-```bash
-npm run lint
-npm run format
-```
-
-### Type Checking
-
-```bash
-npm run type-check
-```
-
-### Testing
-
-```bash
-# Run tests in watch mode
+# Run tests
 npm run test
+npm run test:run  # Run once
+npm run test:ui   # Test UI
 
-# Run tests once
-npm run test:run
-
-# Run tests with UI
-npm run test:ui
+# Code quality
+npm run lint      # Check linting
+npm run format    # Format code
+npm run type-check # TypeScript checking
 ```
 
-## Project Structure
+## 📚 Educational Value
 
-- `src/` — Main source code
-- `routes/` — App routes (using TanStack React Router)
-- `lib/` — Utility functions
-- `public/` — Static assets
+This application is designed specifically for GCSE Computer Science students and covers:
 
-## Installed Packages
+- **Data Representation:** Understanding how different file types are stored
+- **Units and Calculations:** Converting between binary units (bytes, KB, MB, GB, TB) 
+- **Problem Solving:** Working through multi-step calculations with guidance
+- **Real-World Applications:** Understanding storage requirements for actual file types
 
-**Dependencies:**
-- react, react-dom
-- @tanstack/react-router, @tanstack/react-router-devtools
-- @tailwindcss/vite, tailwindcss, tailwind-merge
-- lucide-react
-- clsx, class-variance-authority
+## 🎓 GCSE Curriculum Alignment
 
-**DevDependencies:**
-- vite, @vitejs/plugin-react-swc
-- typescript, @types/react, @types/react-dom, @types/node
-- @biomejs/biome
-- @tanstack/router-plugin
-- tw-animate-css
-- vitest, @vitest/ui, jsdom
-- @testing-library/react, @testing-library/jest-dom
-- globals
+- **AQA Computer Science:** Unit 3.2 (Data Representation)
+- **OCR Computer Science:** J277 Component 1 (Data representation)
+- **Edexcel Computer Science:** Topic 4 (Data representation)
 
-## Linting & Formatting
+## 🧪 Testing
 
-This template uses [Biome](https://biomejs.dev/) for linting and formatting. See `biome.json` for configuration.
+The application includes comprehensive test coverage for:
+- Question generation algorithms
+- Answer validation logic  
+- UI component interactions
+- Score tracking and persistence
 
-## Routing
-
-App routes are defined in `src/routes/` using TanStack React Router. See [TanStack Router docs](https://tanstack.com/router/v1/docs/overview) for usage.
-
-## Tailwind CSS
-
-Tailwind is configured via `@tailwindcss/vite` and supports advanced merging and animation utilities.
-
-## Theme Support
-
-This template includes a complete theme system with:
-
-- **Light/Dark/System modes** - Automatically detects and respects system preference
-- **Persistent storage** - Theme choice saved to localStorage
-- **Semantic color tokens** - Uses CSS variables for consistent theming
-- **Ready-to-use components** - `ThemeToggle` and `SimpleThemeToggle` components
-
-### Using Themes
-
-```tsx
-import { useTheme } from '@/contexts/theme-provider'
-import { ThemeToggle } from '@/components/theme-toggle'
-
-function MyComponent() {
-  const { theme, setTheme } = useTheme()
-  
-  return (
-    <div>
-      <p>Current theme: {theme}</p>
-      <ThemeToggle />
-    </div>
-  )
-}
+Run tests with:
+```bash
+npm run test        # Watch mode
+npm run test:run    # Single run
+npm run test:ui     # Interactive UI
 ```
 
-### Theme Colors
+## 🏗️ Architecture
 
-All theme colors are semantic and automatically switch between light/dark:
+### Component Structure
+- **Route Components:** Individual calculator pages with shared layout
+- **Calculator Components:** Core logic for each practice mode
+- **Shared Components:** Reusable UI elements and layouts  
+- **Hooks & Utils:** Quiz logic, scoring, and mathematical utilities
 
-- `bg-background` / `text-foreground` - Main background/text
-- `bg-card` / `text-card-foreground` - Card backgrounds
-- `bg-primary` / `text-primary-foreground` - Primary actions
-- `bg-secondary` / `text-secondary-foreground` - Secondary elements
-- `bg-muted` / `text-muted-foreground` - Subtle backgrounds
-- `bg-accent` / `text-accent-foreground` - Accent highlights
+### Key Files
+- `src/routes/` - Application pages (unit converter, file size, capacity)
+- `src/components/` - Reusable React components  
+- `src/lib/` - Utility functions, configuration, and business logic
+- `src/contexts/` - React contexts (theme provider)
 
-## Documentation for AI Agents
+## 🤝 Contributing
 
-This template includes comprehensive documentation for AI agents to port existing projects:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/improvement`)
+3. Commit changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/improvement`) 
+5. Open a Pull Request
 
-- **[AI_AGENT_GUIDE.md](./AI_AGENT_GUIDE.md)** - Complete migration guide for AI agents
-- **[MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md)** - Step-by-step checklist for project migration
-- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - API references and code patterns
+## 📄 License
 
-These docs are specifically designed to help future AI agents (Claude Sonnet 4+) understand how to port legacy projects to this modern React template.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built for GCSE Computer Science students and educators
+- Inspired by the need for interactive, educational calculation practice
+- Uses modern web technologies for optimal learning experience
 
 ---
 
-## Customization
-
-You can further expand linting, formatting, and routing as needed. For advanced ESLint rules, see [Biome documentation](https://biomejs.dev/docs/linting/).
+*For technical documentation and development guides, see the other markdown files in this repository.*
 
 
