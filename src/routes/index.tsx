@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, ScoreButton, QuizButton } from "@/components";
 import { useState } from "react";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
+import { SITE_CONFIG } from "@/lib/siteConfig";
+import { ScoreManager } from '@/lib/scoreManager';
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
@@ -10,16 +12,15 @@ export const Route = createFileRoute("/")({
 function HomePage() {
 	// Mode state: 0 = File Size, 1 = Storage, 2 = Unit Convertor
 	const [mode, setMode] = useState(0);
-	// Dummy score for now
-	const scoreButton = (
-		<ScoreButton
-			levelEmoji="🦆"
-			levelTitle="Duckling Logic"
-			points={56}
-			onClick={() => {}}
-		/>
-	);
+	const [showStatsModal, setShowStatsModal] = useState(false);
 
+	const siteConfig = SITE_CONFIG;
+
+	// Score manager
+	const [scoreManager] = useState(
+		() => new ScoreManager(siteConfig.siteKey, siteConfig.scoring.customLevels),
+	);
+	const overallStats = scoreManager.getOverallStats();
 	// Mode button data
 	const MODES = [
 		"File Size Calculator",
@@ -29,10 +30,17 @@ function HomePage() {
 
 	return (
 		<SiteLayout
-			title="File Size Practice"
-			subtitle="Master file size calculations and conversions"
-			scoreButton={scoreButton}
-			titleIcon="🦆"
+			title={siteConfig.title}
+			subtitle={siteConfig.subtitle}
+			titleIcon={siteConfig.icon}
+			scoreButton={
+				<ScoreButton
+					levelEmoji={overallStats.level.emoji}
+					levelTitle={overallStats.level.title}
+					points={overallStats.totalPoints}
+					onClick={() => setShowStatsModal(true)}
+				/>
+			}
 		>
 			{/* Mode Switch Buttons */}
 			<div className="flex justify-center gap-4 mt-2 mb-8">

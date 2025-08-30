@@ -10,23 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as FilesizeRouteImport } from './routes/filesize'
-import { Route as ExampleIndexRouteImport } from './routes/exampleIndex'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const FilesizeRoute = FilesizeRouteImport.update({
   id: '/filesize',
   path: '/filesize',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExampleIndexRoute = ExampleIndexRouteImport.update({
-  id: '/exampleIndex',
-  path: '/exampleIndex',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,35 +25,27 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/exampleIndex': typeof ExampleIndexRoute
   '/filesize': typeof FilesizeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/exampleIndex': typeof ExampleIndexRoute
   '/filesize': typeof FilesizeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/exampleIndex': typeof ExampleIndexRoute
   '/filesize': typeof FilesizeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/exampleIndex' | '/filesize'
+  fullPaths: '/' | '/filesize'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/exampleIndex' | '/filesize'
-  id: '__root__' | '/' | '/about' | '/exampleIndex' | '/filesize'
+  to: '/' | '/filesize'
+  id: '__root__' | '/' | '/filesize'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  ExampleIndexRoute: typeof ExampleIndexRoute
   FilesizeRoute: typeof FilesizeRoute
 }
 
@@ -76,20 +56,6 @@ declare module '@tanstack/react-router' {
       path: '/filesize'
       fullPath: '/filesize'
       preLoaderRoute: typeof FilesizeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/exampleIndex': {
-      id: '/exampleIndex'
-      path: '/exampleIndex'
-      fullPath: '/exampleIndex'
-      preLoaderRoute: typeof ExampleIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,8 +70,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  ExampleIndexRoute: ExampleIndexRoute,
   FilesizeRoute: FilesizeRoute,
 }
 export const routeTree = rootRouteImport

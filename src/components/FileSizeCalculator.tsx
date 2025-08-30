@@ -1,14 +1,8 @@
-import React, { useEffect, useState } from "react";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import React, { useEffect, useState, useRef } from "react";
+import { Card, CardContent} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
-import { AnswerForm, FeedbackBox } from "@/components/QuizComponents";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface Question {
 	type: "sound" | "image" | "text" | "options" | "bitsFromOptions";
@@ -19,18 +13,17 @@ interface Question {
 	answer: number;
 	explanation: string[];
 }
-
 export const FileSizeCalculator = () => {
 	const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-	const [userAnswer, setUserAnswer] = useState<number>(0);
+	const [userAnswer, setUserAnswer] = useState<string>("");
 	const [feedback, setFeedback] = useState<{
 		isCorrect: boolean;
 		message: string;
 		explanation: string[];
 	} | null>(null);
-	const [score, setScore] = useState({ correct: 0, total: 0 });
 	const [showHint, setShowHint] = useState<boolean>(false);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		generateQuestion();
@@ -204,24 +197,20 @@ export const FileSizeCalculator = () => {
 		const newQuestion =
 			questionTypes[Math.floor(Math.random() * questionTypes.length)]();
 		setCurrentQuestion(newQuestion);
-		setUserAnswer(NaN);
+		setUserAnswer('');
 		setFeedback(null);
-		console.log(newQuestion);
 	};
 
 	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		const value = e.target.value;
-		setUserAnswer(value === "" ? 0 : Number(value));
+		setUserAnswer(e.target.value);
 	};
 
 	const checkAnswer = () => {
 		if (!currentQuestion) return;
-		const isCorrect = Math.abs(userAnswer - currentQuestion.answer) < 0.01;
+		const answerNum = Number(userAnswer);
+		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
 
-		setScore((prev) => ({
-			correct: prev.correct + (isCorrect ? 1 : 0),
-			total: prev.total + 1,
-		}));
+        // Update score here
 
 		setFeedback({
 			isCorrect,
@@ -237,6 +226,9 @@ export const FileSizeCalculator = () => {
 		if (hasSubmitted) return;
 		checkAnswer();
 		setHasSubmitted(true);
+		if (inputRef.current) {
+			inputRef.current.blur();
+		}
 	};
 
 	const getCalculationHint = (): string => {
@@ -261,46 +253,86 @@ export const FileSizeCalculator = () => {
 		<div className="w-full">
 			<div className="p-4">
 				<Card className="mx-auto shadow-xl bg-white/80 backdrop-blur">
-					<CardHeader className="bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-t-lg p-8">
-						<CardDescription className="text-white rounded-t-lg mt-4">
-							<div className="flex flex-col md:flex-row gap-6">
-								<div className="flex justify-between items-center gap-3">
-									<span className="text-md md:text-lg">
-										Show calculation help
-									</span>
-									<Switch checked={showHint} onCheckedChange={setShowHint} />
-								</div>
-							</div>
-						</CardDescription>
-					</CardHeader>
 					<CardContent className="space-y-6 p-8">
-						{showHint && (
-							<Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-none p-6">
-								<div className="flex items-center gap-3">
-									<AlertDescription className="text-lg md:text-xl">
-										<div className="font-semibold text-indigo-900">
-											{getCalculationHint()}
-										</div>
-									</AlertDescription>
-								</div>
-							</Alert>
-						)}
 						{currentQuestion ? (
-							<div className="space-y-6">
+							<>
 								<div className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-lg shadow">
 									{getQuestionText(currentQuestion)}
 								</div>
-								<AnswerForm
-									handleSubmit={handleSubmit}
-									userAnswer={userAnswer}
-									handleAnswerChange={handleAnswerChange}
-									type="number"
-									generateQuestion={generateQuestion}
-									hasSubmitted={hasSubmitted}
-								/>
+								<form onSubmit={handleSubmit} className="space-y-4">
+									<Input
+										ref={inputRef}
+										type="number"
+										value={userAnswer}
+										onChange={handleAnswerChange}
+										placeholder="Enter your answer"
+										disabled={hasSubmitted}
+									/>
+									<Button
+										type="submit"
+										disabled={hasSubmitted || userAnswer === ""}
+									>
+										Submit
+									</Button>
+								</form>
 
-								{feedback && <FeedbackBox feedback={feedback} />}
-							</div>
+                                <div className="flex justify-between items-center gap-3 mb-4">
+                                    <span className="text-md md:text-lg">Show calculation help</span>
+                                    <Button
+                                        variant={showHint ? "secondary" : "outline"}
+                                        onClick={() => setShowHint((v) => !v)}
+                                    >
+                                        {showHint ? "Hide" : "Show"}
+                                    </Button>
+                                </div>
+								{showHint && (
+									<Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-none p-6">
+										<AlertDescription className="text-lg md:text-xl font-semibold text-indigo-900">
+											{getCalculationHint()}
+										</AlertDescription>
+									</Alert>
+								)}
+								{feedback && (
+									<Alert
+										className={
+											feedback.isCorrect
+												? "bg-green-100 border-green-300"
+												: "bg-red-100 border-red-300"
+										}
+									>
+										<AlertDescription>
+											<div
+												className={
+													feedback.isCorrect ? "text-green-700" : "text-red-700"
+												}
+											>
+												{feedback.message}
+											</div>
+											<div className="mt-2 text-gray-700">
+												<div className="font-semibold text-blue-900">
+													Explanation:
+												</div>
+												{feedback.explanation.map((step, idx) => (
+													<div key={idx} className="ml-4 mt-1 text-blue-700">
+														{step}
+													</div>
+												))}
+											</div>
+											<Button
+												className="mt-4"
+												onClick={() => {
+													generateQuestion();
+													setHasSubmitted(false);
+													setUserAnswer("");
+													setFeedback(null);
+												}}
+											>
+												Next Question
+											</Button>
+										</AlertDescription>
+									</Alert>
+								)}
+							</>
 						) : (
 							<div className="text-lg md:text-2xl text-center text-indigo-600">
 								Click "New Question" to begin!
