@@ -3,6 +3,8 @@
  * Export all reusable components for easy importing
  */
 
+export { CapacityCalculator } from "./CapacityCalculator";
+export { FileSizeCalculator } from "./FileSizeCalculator";
 export { Footer } from "./Footer";
 export { Header } from "./Header";
 export type { HintItem } from "./HintPanel";
@@ -35,6 +37,8 @@ export { StatsModal } from "./StatsModal";
  *   ScoreButton,
  *   HintPanel,
  *   Header,
- *   Footer
+ *   Footer,
+ *   CapacityCalculator,
+ *   FileSizeCalculator
  * } from "@/components";
  */

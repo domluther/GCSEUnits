@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { QuizButton, ScoreButton, SiteLayout, StatsModal } from "@/components";
+import { CapacityCalculator, QuizButton, ScoreButton, SiteLayout, StatsModal } from "@/components";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
 import { ScoreManager } from "@/lib/scoreManager";
 import { SITE_CONFIG } from "@/lib/siteConfig";
@@ -62,7 +62,8 @@ function HomePage() {
 			{/* Main Body: Only File Size Calculator for now */}
 			<div className="max-w-4xl mx-auto">
 				{mode === 0 && <FileSizeCalculator scoreManager={scoreManager} />}
-				{mode !== 0 && (
+				{mode === 1 && <CapacityCalculator scoreManager={scoreManager} />}
+				{mode === 2 && (
 					<div className="text-center text-gray-400 py-16 text-xl">
 						Coming soon!
 					</div>
