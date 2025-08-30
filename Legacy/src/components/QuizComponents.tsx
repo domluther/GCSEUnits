@@ -1,9 +1,7 @@
-import { Button } from "./ui/button";
-
-import { Input } from "./ui/input";
-
 import { Check, X } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 export const FeedbackBox = ({
 	feedback,

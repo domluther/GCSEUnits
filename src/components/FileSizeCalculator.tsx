@@ -1,10 +1,13 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Card, CardContent} from "@/components/ui/card";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import type { ScoreManager } from "@/lib/scoreManager";
 
 interface Question {
+	category: "CalculateFileSize";
 	type: "sound" | "image" | "text" | "options" | "bitsFromOptions";
 	params: {
 		[key: string]: number;
@@ -13,7 +16,11 @@ interface Question {
 	answer: number;
 	explanation: string[];
 }
-export const FileSizeCalculator = () => {
+interface FileSizeCalculatorProps {
+	scoreManager: ScoreManager;
+}
+
+export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 	const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 	const [userAnswer, setUserAnswer] = useState<string>("");
 	const [feedback, setFeedback] = useState<{
@@ -24,6 +31,22 @@ export const FileSizeCalculator = () => {
 	const [showHint, setShowHint] = useState<boolean>(false);
 	const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	const generateQuestion = (): void => {
+		setHasSubmitted(false);
+		const questionTypes = [
+			generateImageQuestion,
+			generateSoundQuestion,
+			generateTextQuestion,
+			generateBitsFromOptionsQuestion,
+			generateOptionsQuestion,
+		];
+		const newQuestion =
+			questionTypes[Math.floor(Math.random() * questionTypes.length)]();
+		setCurrentQuestion(newQuestion);
+		setUserAnswer("");
+		setFeedback(null);
+	};
 
 	useEffect(() => {
 		generateQuestion();
@@ -56,6 +79,7 @@ export const FileSizeCalculator = () => {
 		const answer = convertToUnit(sizeInBits, targetUnit);
 
 		return {
+			category: "CalculateFileSize",
 			type: "image",
 			params: { width, height, colorDepth: colourDepth },
 			targetUnit,
@@ -87,6 +111,7 @@ export const FileSizeCalculator = () => {
 		const answer = convertToUnit(bits, targetUnit);
 
 		return {
+			category: "CalculateFileSize",
 			type: "sound",
 			params: { sampleRate, duration, bitDepth },
 			targetUnit,
@@ -113,6 +138,7 @@ export const FileSizeCalculator = () => {
 		const answer = convertToUnit(bits, targetUnit);
 
 		return {
+			category: "CalculateFileSize",
 			type: "text",
 			params: { charCount, bitsPerChar },
 			targetUnit,
@@ -131,9 +157,10 @@ export const FileSizeCalculator = () => {
 
 	const generateOptionsQuestion = (): Question => {
 		const numOfBits = Math.floor(Math.random() * 7) + 1; // 1-8  bits
-		const answer = Math.pow(2, numOfBits);
+		const answer = 2 ** numOfBits;
 
 		return {
+			category: "CalculateFileSize",
 			type: "options",
 			params: { numOfBits },
 			targetUnit: "bits",
@@ -152,6 +179,7 @@ export const FileSizeCalculator = () => {
 		const answer = Math.ceil(Math.log(numberOfOptions) / Math.log(2));
 
 		return {
+			category: "CalculateFileSize",
 			type: "bitsFromOptions",
 			params: { numberOfOptions },
 			targetUnit: "bits",
@@ -185,22 +213,6 @@ export const FileSizeCalculator = () => {
 		}
 	};
 
-	const generateQuestion = (): void => {
-		setHasSubmitted(false);
-		const questionTypes = [
-			generateImageQuestion,
-			generateSoundQuestion,
-			generateTextQuestion,
-			generateBitsFromOptionsQuestion,
-			generateOptionsQuestion,
-		];
-		const newQuestion =
-			questionTypes[Math.floor(Math.random() * questionTypes.length)]();
-		setCurrentQuestion(newQuestion);
-		setUserAnswer('');
-		setFeedback(null);
-	};
-
 	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
 		setUserAnswer(e.target.value);
 	};
@@ -210,7 +222,8 @@ export const FileSizeCalculator = () => {
 		const answerNum = Number(userAnswer);
 		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
 
-        // Update score here
+		// Update score here
+		scoreManager.recordScore(isCorrect, currentQuestion.category);
 
 		setFeedback({
 			isCorrect,
@@ -276,15 +289,17 @@ export const FileSizeCalculator = () => {
 									</Button>
 								</form>
 
-                                <div className="flex justify-between items-center gap-3 mb-4">
-                                    <span className="text-md md:text-lg">Show calculation help</span>
-                                    <Button
-                                        variant={showHint ? "secondary" : "outline"}
-                                        onClick={() => setShowHint((v) => !v)}
-                                    >
-                                        {showHint ? "Hide" : "Show"}
-                                    </Button>
-                                </div>
+								<div className="flex justify-between items-center gap-3 mb-4">
+									<span className="text-md md:text-lg">
+										Show calculation help
+									</span>
+									<Button
+										variant={showHint ? "secondary" : "outline"}
+										onClick={() => setShowHint((v) => !v)}
+									>
+										{showHint ? "Hide" : "Show"}
+									</Button>
+								</div>
 								{showHint && (
 									<Alert className="bg-gradient-to-r from-blue-50 to-purple-50 border-none p-6">
 										<AlertDescription className="text-lg md:text-xl font-semibold text-indigo-900">
@@ -312,8 +327,8 @@ export const FileSizeCalculator = () => {
 												<div className="font-semibold text-blue-900">
 													Explanation:
 												</div>
-												{feedback.explanation.map((step, idx) => (
-													<div key={idx} className="ml-4 mt-1 text-blue-700">
+												{feedback.explanation.map((step) => (
+													<div key={step} className="ml-4 mt-1 text-blue-700">
 														{step}
 													</div>
 												))}
@@ -343,4 +358,4 @@ export const FileSizeCalculator = () => {
 			</div>
 		</div>
 	);
-};
+}

@@ -1,4 +1,6 @@
+import { ArrowRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	Card,
 	CardContent,
@@ -6,8 +8,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { AnswerForm, FeedbackBox, ScoreBox } from "./QuizComponents";
 

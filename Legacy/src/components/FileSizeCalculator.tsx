@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
 	Card,
 	CardContent,
@@ -6,9 +8,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Switch } from "./ui/switch";
 import { AnswerForm, FeedbackBox, ScoreBox } from "./QuizComponents";
+import { Switch } from "./ui/switch";
 
 interface Question {
 	type: "sound" | "image" | "text" | "options" | "bitsFromOptions";
@@ -138,7 +139,7 @@ const FileSizeCalculator = () => {
 
 	const generateOptionsQuestion = (): Question => {
 		const numOfBits = Math.floor(Math.random() * 7) + 1; // 1-8  bits
-		const answer = Math.pow(2, numOfBits);
+		const answer = 2 ** numOfBits;
 
 		return {
 			type: "options",

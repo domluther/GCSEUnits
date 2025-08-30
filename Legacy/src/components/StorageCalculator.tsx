@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -68,7 +69,7 @@ const StorageCalculator = () => {
 		console.log(
 			`Converting ${value} from ${fromUnit} to ${toUnit} (diff: ${difference})`,
 		);
-		return value * Math.pow(1000, difference);
+		return value * 1000 ** difference;
 	};
 
 	// Helper function to get simple file sizes

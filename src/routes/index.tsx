@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SiteLayout, ScoreButton, QuizButton } from "@/components";
 import { useState } from "react";
+import { QuizButton, ScoreButton, SiteLayout, StatsModal } from "@/components";
 import { FileSizeCalculator } from "@/components/FileSizeCalculator";
+import { ScoreManager } from "@/lib/scoreManager";
 import { SITE_CONFIG } from "@/lib/siteConfig";
-import { ScoreManager } from '@/lib/scoreManager';
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
@@ -61,13 +61,19 @@ function HomePage() {
 			</div>
 			{/* Main Body: Only File Size Calculator for now */}
 			<div className="max-w-2xl mx-auto">
-				{mode === 0 && <FileSizeCalculator />}
+				{mode === 0 && <FileSizeCalculator scoreManager={scoreManager} />}
 				{mode !== 0 && (
 					<div className="text-center text-gray-400 py-16 text-xl">
 						Coming soon!
 					</div>
 				)}
 			</div>
+			<StatsModal
+				isOpen={showStatsModal}
+				onClose={() => setShowStatsModal(false)}
+				scoreManager={scoreManager}
+				title="Your Network Mastery"
+			/>
 		</SiteLayout>
 	);
 }

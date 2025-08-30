@@ -1,8 +1,8 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Footer } from "@/components";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ThemeProvider } from "@/contexts/theme-provider";
-import { Footer } from "@/components";
 
 export const Route = createRootRoute({
 	component: () => (
@@ -16,8 +16,7 @@ export const Route = createRootRoute({
 					<Footer />
 				</div>
 			</div>
-		<TanStackRouterDevtools />
-
+			<TanStackRouterDevtools />
 		</ThemeProvider>
 	),
 });

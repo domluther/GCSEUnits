@@ -1,9 +1,9 @@
 import { useState } from "react";
 import "./App.css";
-import StorageCalculator from "./components/StorageCalculator";
-import DataUnitConverter from "./components/UnitConvertor";
 import { Card, CardContent } from "@/components/ui/card";
 import FileSizeCalculator from "./components/FileSizeCalculator";
+import StorageCalculator from "./components/StorageCalculator";
+import DataUnitConverter from "./components/UnitConvertor";
 
 const App = () => {
 	const [selectedComponent, setSelectedComponent] = useState<string | null>(
