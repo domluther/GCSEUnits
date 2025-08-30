@@ -457,6 +457,32 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 														)}
 													</div>
 
+													{/* Next Question Button */}
+													<div className="flex justify-center pt-2">
+														<button
+															type="button"
+															onClick={() => {
+																generateQuestion(
+																	setHasSubmitted,
+																	setCurrentQuestion,
+																	setUserAnswer,
+																	setFeedback,
+																);
+																// Focus management - return focus to input after new question loads
+																setTimeout(() => {
+																	if (inputRef.current) {
+																		inputRef.current.focus();
+																	}
+																}, 100);
+															}}
+															aria-label="Generate next question"
+															className="px-8 py-3 font-semibold rounded-lg transition-all duration-200 shadow-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white hover:shadow-xl transform hover:-translate-y-1"
+														>
+															<span className="mr-2">🎯</span>
+															Next Question
+														</button>
+													</div>
+
 													{/* Explanation Section */}
 													<div className="space-y-4">
 														<h3 className="font-bold text-indigo-900 text-lg mb-3 flex items-center">
@@ -491,32 +517,6 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 																</div>
 															),
 														)}
-													</div>
-
-													{/* Next Question Button */}
-													<div className="flex justify-center pt-2">
-														<button
-															type="button"
-															onClick={() => {
-																generateQuestion(
-																	setHasSubmitted,
-																	setCurrentQuestion,
-																	setUserAnswer,
-																	setFeedback,
-																);
-																// Focus management - return focus to input after new question loads
-																setTimeout(() => {
-																	if (inputRef.current) {
-																		inputRef.current.focus();
-																	}
-																}, 100);
-															}}
-															aria-label="Generate next question"
-															className="px-8 py-3 font-semibold rounded-lg transition-all duration-200 shadow-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white hover:shadow-xl transform hover:-translate-y-1"
-														>
-															<span className="mr-2">🎯</span>
-															Next Question
-														</button>
 													</div>
 												</div>
 											</AlertDescription>

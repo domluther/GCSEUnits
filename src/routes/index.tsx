@@ -60,7 +60,7 @@ function HomePage() {
 				))}
 			</div>
 			{/* Main Body: Only File Size Calculator for now */}
-			<div className="max-w-2xl mx-auto">
+			<div className="max-w-4xl mx-auto">
 				{mode === 0 && <FileSizeCalculator scoreManager={scoreManager} />}
 				{mode !== 0 && (
 					<div className="text-center text-gray-400 py-16 text-xl">
