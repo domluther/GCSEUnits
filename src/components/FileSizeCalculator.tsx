@@ -64,7 +64,9 @@ const generateImageQuestion = (): Question => {
 			},
 			{
 				title: "Multiply width × height × color depth",
-				details: [`${width} × ${height} × ${colourDepth} = ${formatNumber(sizeInBits)} bits`],
+				details: [
+					`${width} × ${height} × ${colourDepth} = ${formatNumber(sizeInBits)} bits`,
+				],
 			},
 			...(targetUnit !== "bits"
 				? [
@@ -108,11 +110,15 @@ const generateSoundQuestion = (): Question => {
 			},
 			{
 				title: "Multiply sample rate × duration × bit depth",
-				details: [`${sampleRate} × ${duration} × ${bitDepth} = ${formatNumber(bits)} bits`],
+				details: [
+					`${sampleRate} × ${duration} × ${bitDepth} = ${formatNumber(bits)} bits`,
+				],
 			},
 			{
 				title: `Convert to ${targetUnit}`,
-				details: [`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`],
+				details: [
+					`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`,
+				],
 			},
 		],
 	};
@@ -146,7 +152,9 @@ const generateTextQuestion = (): Question => {
 			},
 			{
 				title: `Convert to ${targetUnit}`,
-				details: [`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`],
+				details: [
+					`${formatNumber(bits)} bits = ${formatNumber(answer)} ${targetUnit}`,
+				],
 			},
 		],
 	};
@@ -364,7 +372,7 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 				File Size Calculator
 			</h1>
 			<div className="p-4">
-				<Card className="mx-auto shadow-xl bg-white/80 backdrop-blur">
+				<Card className="mx-auto shadow-xl py-0 bg-white/80 backdrop-blur">
 					<CardContent className="space-y-6 p-8">
 						{/* Live region for screen reader announcements */}
 						<div aria-live="polite" aria-atomic="true" className="sr-only">
@@ -397,7 +405,7 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 											aria-invalid={
 												feedback && !feedback.isCorrect ? "true" : "false"
 											}
-											className="text-lg p-4 text-center font-semibold"
+											className="text-2xl p-6 text-center font-bold border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-200 rounded-xl shadow-lg transition-all duration-200 bg-gradient-to-r from-white to-indigo-50"
 										/>
 									</div>
 								</form>
@@ -516,7 +524,7 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 									</div>
 								)}
 
-																<details className="mt-6 group">
+								<details className="mt-6 group">
 									<summary className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-lg px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 shadow-sm hover:shadow-md list-none [&::-webkit-details-marker]:hidden">
 										<span className="text-blue-800 font-semibold flex items-center">
 											<span className="mr-2 text-lg">💡</span>
@@ -537,7 +545,6 @@ export function FileSizeCalculator({ scoreManager }: FileSizeCalculatorProps) {
 										</div>
 									</section>
 								</details>
-
 							</section>
 						) : (
 							<section
