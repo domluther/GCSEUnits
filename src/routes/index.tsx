@@ -35,7 +35,7 @@ function HomePage() {
 			titleIcon="🦆"
 		>
 			{/* Mode Switch Buttons */}
-			<div className="flex justify-center gap-4 mt-8 mb-8">
+			<div className="flex justify-center gap-4 mt-2 mb-8">
 				{MODES.map((option, i) => (
 					<QuizButton
 						key={option}
