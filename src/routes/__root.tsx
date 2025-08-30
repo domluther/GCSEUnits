@@ -2,25 +2,19 @@ import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ThemeProvider } from "@/contexts/theme-provider";
+import { Footer } from "@/components";
 
 export const Route = createRootRoute({
 	component: () => (
 		<ThemeProvider defaultTheme="system" storageKey="ui-theme">
-			<div className="min-h-screen bg-background text-foreground">
-				<div className="p-2 flex gap-2 justify-between items-center">
-					<div className="flex gap-2">
-						<Link to="/" className="[&.active]:font-bold">
-							Home
-						</Link>{" "}
-						<Link to="/about" className="[&.active]:font-bold">
-							About
-						</Link>
-					</div>
-					<ThemeToggle />
+			<ThemeToggle />
+			<div className="flex flex-col items-center justify-center min-h-screen p-5 bg-gradient-to-br from-indigo-400 to-purple-600">
+				<div className="w-full max-w-6xl overflow-hidden bg-white shadow-2xl rounded-xl">
+					<main className="p-0">
+						<Outlet />
+					</main>
+					<Footer />
 				</div>
-				<hr className="border-border" />
-				<Outlet />
-				<TanStackRouterDevtools />
 			</div>
 		</ThemeProvider>
 	),
