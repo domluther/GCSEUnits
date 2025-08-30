@@ -42,6 +42,10 @@ const formatNumber = (num: number): string => {
 	return parts.join(".");
 };
 
+const unformatNumber = (str: string): string => {
+	return str.replace(/,/g, "");
+};
+
 // Convert value from one unit to another
 const convertValue = (
 	value: number,
@@ -290,12 +294,18 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 	};
 
 	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		setUserAnswer(e.target.value);
+		const inputValue = e.target.value;
+		const rawValue = unformatNumber(inputValue);
+
+		// Only allow numeric input (including decimals)
+		if (rawValue === "" || /^\d*\.?\d*$/.test(rawValue)) {
+			setUserAnswer(rawValue);
+		}
 	};
 
 	const checkAnswer = () => {
 		if (!currentQuestion) return;
-		const answerNum = Number(userAnswer);
+		const answerNum = Number(unformatNumber(userAnswer));
 		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.01;
 
 		// Update score here
@@ -349,9 +359,17 @@ export function CapacityCalculator({ onScoreUpdate }: CapacityCalculatorProps) {
 										<Input
 											id={answerInputId}
 											ref={inputRef}
-											type="number"
-											step="any"
-											value={userAnswer}
+											type="text"
+											inputMode="numeric"
+											value={
+												userAnswer
+													? (userAnswer.includes(".") &&
+															userAnswer.endsWith(".")) ||
+														userAnswer.endsWith("0")
+														? userAnswer
+														: formatNumber(Number(userAnswer))
+													: ""
+											}
 											onChange={handleAnswerChange}
 											placeholder="Enter your answer and press Enter"
 											disabled={hasSubmitted}

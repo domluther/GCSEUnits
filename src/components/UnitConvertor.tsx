@@ -48,6 +48,10 @@ const formatNumber = (num: number): string => {
 	return parts.join(".");
 };
 
+const unformatNumber = (str: string): string => {
+	return str.replace(/,/g, "");
+};
+
 const units = [
 	"bits",
 	"bytes",
@@ -119,7 +123,7 @@ const getMultiplier = (unit: string): number => {
 };
 
 const calculateAnswer = (value: number, fromUnit: string, toUnit: string) => {
-	let valueInBytes;
+	let valueInBytes: number;
 	if (fromUnit === "bits") {
 		valueInBytes = value / 8;
 	} else {
@@ -152,7 +156,6 @@ const generateExplanation = (
 	});
 
 	const steps: string[] = [];
-	let nextStep = 1;
 	let workingFromIndex = fromIndex;
 	let workingValue = value;
 
@@ -168,7 +171,6 @@ const generateExplanation = (
 				workingValue = workingValue / 1000;
 			}
 			steps.push(step);
-			nextStep++;
 			workingFromIndex++;
 		}
 	} else {
@@ -183,7 +185,6 @@ const generateExplanation = (
 				workingValue = workingValue * 1000;
 			}
 			steps.push(step);
-			nextStep++;
 			workingFromIndex--;
 		}
 	}
@@ -283,7 +284,7 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 			setFeedback,
 			isAdvancedMode,
 		);
-	}, []); // Safe empty dependency - generateQuestion is pure and state setters are stable
+	}, [isAdvancedMode]); // Safe empty dependency - generateQuestion is pure and state setters are stable
 
 	// Global keyboard listener for Enter key when hasSubmitted is true
 	useEffect(() => {
@@ -317,12 +318,18 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 	};
 
 	const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-		setUserAnswer(e.target.value);
+		const inputValue = e.target.value;
+		const rawValue = unformatNumber(inputValue);
+
+		// Only allow numeric input (including decimals)
+		if (rawValue === "" || /^\d*\.?\d*$/.test(rawValue)) {
+			setUserAnswer(rawValue);
+		}
 	};
 
 	const checkAnswer = () => {
 		if (!currentQuestion) return;
-		const answerNum = Number(userAnswer);
+		const answerNum = Number(unformatNumber(userAnswer));
 		const isCorrect = Math.abs(answerNum - currentQuestion.answer) < 0.001;
 
 		// Update score here
@@ -367,8 +374,12 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 									<div className="flex items-center gap-3">
 										<span className="text-lg">⚙️</span>
 										<div>
-											<span className="font-semibold text-gray-800">Advanced Mode</span>
-											<p className="text-sm text-gray-600">Allow conversions up to 3 steps apart</p>
+											<span className="font-semibold text-gray-800">
+												Advanced Mode
+											</span>
+											<p className="text-sm text-gray-600">
+												Allow conversions up to 3 steps apart
+											</p>
 										</div>
 									</div>
 									<Switch
@@ -405,9 +416,17 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 										<Input
 											id={answerInputId}
 											ref={inputRef}
-											type="number"
-											step="any"
-											value={userAnswer}
+											type="text"
+											inputMode="numeric"
+											value={
+												userAnswer
+													? (userAnswer.includes(".") &&
+															userAnswer.endsWith(".")) ||
+														userAnswer.endsWith("0")
+														? userAnswer
+														: formatNumber(Number(userAnswer))
+													: ""
+											}
 											onChange={handleAnswerChange}
 											placeholder="Enter your answer and press Enter"
 											disabled={hasSubmitted}
@@ -589,7 +608,9 @@ export function UnitConvertor({ onScoreUpdate }: UnitConvertorProps) {
 										id={conversionHintId}
 										aria-labelledby={conversionHintTitleId}
 									>
-										<h3 id={conversionHintTitleId} className="sr-only"></h3>
+										<h3 id={conversionHintTitleId} className="sr-only">
+											Conversion Path
+										</h3>
 										<div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-pink-50 border-l-4 border-purple-400 rounded-r-lg shadow-inner">
 											<div className="space-y-4">
 												<ConversionPathVisual
